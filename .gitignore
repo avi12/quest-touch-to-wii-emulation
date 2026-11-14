@@ -1,5 +1,7 @@
+.bridge.pids
+*.log
+node_modules/
+.fallow/
 __pycache__/
 *.pyc
 .venv/
-.bridge.pids
-*.log
