@@ -36,6 +36,7 @@ const sampleSchema = z.object({
   accel: z.tuple([z.number(), z.number(), z.number()]),
   gyroRoll: z.number(),
   rotation: z.array(z.number()).length(9),
+  facing: z.number().default(1),
   recenter: z.boolean(),
   mark: z.boolean()
 });
