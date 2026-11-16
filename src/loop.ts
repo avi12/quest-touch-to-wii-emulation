@@ -18,6 +18,8 @@ const MS_PER_SECOND = 1000;
 const STEP_SECONDS = 1 / RATE_HZ;
 const REPORT_INTERVAL_MS = 3000;
 const RECENTER_HOLD_MS = 300;
+const SWING_ACCEL_G = 1.5; // accel magnitude (g) that counts as a swing in progress
+const SWING_SETTLE_MS = 250; // calm this long after a swing, then Dolphin's motion tracking is recentred
 const TIMER_RESOLUTION_MS = 1;
 const DISPLAY_PRECISION = 100;
 const PARKED_POINTER: PointerPosition = {
@@ -66,6 +68,7 @@ class Bridge {
   readonly #report = new Throttle();
   #isLeftEnabled = true;
   #lastPad: PadState | null = null;
+  #lastSwingAt: number | null = null; // last moment a swing was in progress; null once Dolphin was recentred after it
 
   constructor() {
     setTimerResolution(TIMER_RESOLUTION_MS);
@@ -124,6 +127,7 @@ class Bridge {
       basis: this.#pointer.basis,
       motion
     });
+    this.#recenterMotionAfterSwing(sensors);
     const pointer = this.#pointer.update({
       rotation: pose.rot,
       isClickPressed: left.click || right.click,
@@ -166,6 +170,24 @@ class Bridge {
     if (this.#lastPad) {
       this.#server.sendPad(this.#lastPad);
     }
+  }
+
+  /** A hard swing leaves Dolphin's motion tracking skewed; recentre it once the controller settles. */
+  #recenterMotionAfterSwing(sensors: Sensors) {
+    const now = Date.now();
+    const isSwinging = Math.hypot(...sensors.accel) > SWING_ACCEL_G;
+    if (isSwinging) {
+      this.#lastSwingAt = now;
+      return;
+    }
+
+    const isSettled = this.#lastSwingAt !== null && now - this.#lastSwingAt >= SWING_SETTLE_MS;
+    if (!isSettled) {
+      return;
+    }
+
+    this.#lastSwingAt = null;
+    this.#server.recenterUntil = now + RECENTER_HOLD_MS;
   }
 
   #applyHotkeys() {

@@ -18,6 +18,7 @@ const FLIP_GYRO: Vec3 = [1, 1, 1];
 const SWING_GAIN = 1.0; // swing acceleration passed to Dolphin (gated by SWING_LOW/HIGH so gentle aiming cannot bend the motion pointer's pitch)
 const SWING_LOW = 0.6;
 const SWING_HIGH = 1.2; // g: below LOW the motion is ignored (aiming), above HIGH it is passed in full
+const MAX_SWING_G = 3; // a real Wii Remote's accelerometer saturates near 3 g; far larger values corrupt Dolphin's motion tracking
 const ROLL_GAIN = 1.0; // 1 = hand follows the controller's roll 1:1; negative flips the direction
 const WORLD_UP: Vec3 = [0, 1, 0];
 const MAX_ANGULAR_RATE = degreesToRadians(1200); // faster than this is a tracking jump, not real motion
@@ -197,7 +198,7 @@ export function toSensors({ rotation, basis, motion }: { rotation: Mat3; basis: 
     first: rollOnlyGravity,
     second: scale({
       vector: swing,
-      factor: SWING_GAIN * swingFactor
+      factor: SWING_GAIN * swingFactor * Math.min(1, MAX_SWING_G / Math.max(norm(swing), 1e-9))
     })
   });
   const sensors: Sensors = {

@@ -50,7 +50,7 @@ Dolphin builds the camera transform from **two stacked sources** _(source: `GetT
 Details that matter:
 
 - The pointer is `tan`-scaled (flat screen), so a pitched grip doesn't tilt the horizontal sweep. Angle-based mapping did.
-- A One-Euro filter smooths it (jitter when slow, no lag when fast). Range: ±28° across, ±18° up/down.
+- A One-Euro filter smooths it (jitter when slow, no lag when fast). Range: ±28° across, ±30° up/down.
 - Auto-recenter when the pointer is pinned at an edge for 1.5 s (never when the controller points straight up or down).
 - Swing acceleration is passed to Dolphin only above ~0.6–1.2 g. Gentle aiming accelerations bend the IMU pointer's _pitch_ (Dolphin corrects pitch with the accelerometer), which made vertical motion wobble.
 

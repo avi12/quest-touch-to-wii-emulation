@@ -14,7 +14,7 @@ import {
 import type { Mat3, Vec3 } from "#/math.ts";
 
 const YAW_RANGE = degreesToRadians(28); // controller swing (each way) that spans the whole screen width
-const PITCH_RANGE = degreesToRadians(18);
+const PITCH_RANGE = degreesToRadians(30);
 const PITCH_BIAS = 0.0; // keep 0: a recenter must put the hand exactly in the middle of the screen
 const WORLD_UP: Vec3 = [0, 1, 0];
 const EDGE_HOLD_MS = 1500;
@@ -23,7 +23,7 @@ const USABLE_AIM_LIMIT = 0.95; // aiming straight up/down has no usable screen p
 const DEFAULT_UP_HINT_LIMIT = 0.9;
 const MIN_UP_LENGTH = 0.2;
 const MIN_DEPTH = 0.1;
-const DEFAULT_CANDIDATE_INDEX = 6;
+const DEFAULT_CANDIDATE_INDEX = 7; // "Meta aim ray": the physical pointing direction of the controller
 const SWEEP_STEP_MS = 4000;
 const POINTER_SWEEP: readonly (readonly [number, number])[] = [
   [0, 0],
@@ -108,7 +108,7 @@ export function sweepPointer() {
  */
 export class Pointer {
   basis: Mat3; // right, forward, up (in the controller frame)
-  #aim: Vec3 = [0, 0, -1]; // pointing axis, chosen live with the Ctrl+Alt+[ ] selector; grip-dependent
+  #aim: Vec3 = normalize(CANDIDATES[DEFAULT_CANDIDATE_INDEX]?.[1] ?? [0, 0, -1]); // pointing axis, chosen live with the Ctrl+Alt+[ ] selector; grip-dependent
   #candidateIndex = DEFAULT_CANDIDATE_INDEX;
   #screenNormal: Vec3 = [0, 0, -1];
   #screenRight: Vec3 = [1, 0, 0];

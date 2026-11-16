@@ -131,7 +131,7 @@ function floatsSchema(length: number) {
   return z.instanceof(Float32Array).refine(floats => floats.length === length);
 }
 const rawStateSchema = z.object({
-  buttonPressed: z.bigint(),
+  buttonPressed: z.coerce.bigint(),
   axes: floatsSchema(AXIS_COUNT * FLOATS_PER_AXIS)
 });
 const rawPoseSchema = z.object({
