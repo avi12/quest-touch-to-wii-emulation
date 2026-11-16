@@ -17,13 +17,14 @@ const YAW_RANGE = degreesToRadians(28); // controller swing (each way) that span
 const PITCH_RANGE = degreesToRadians(30);
 const PITCH_BIAS = 0.0; // keep 0: a recenter must put the hand exactly in the middle of the screen
 const WORLD_UP: Vec3 = [0, 1, 0];
-const EDGE_HOLD_MS = 1500;
-const EDGE_THRESHOLD = 0.999;
+const EDGE_THRESHOLD = 0.999; // pointer value that counts as pinned at the screen edge
+const EDGE_HOLD_MS = 800; // pinned and still this long: the screen is where you aim now
+const STILL_RATE = degreesToRadians(20); // rad/s below which the controller counts as held still
 const USABLE_AIM_LIMIT = 0.95; // aiming straight up/down has no usable screen plane
 const DEFAULT_UP_HINT_LIMIT = 0.9;
 const MIN_UP_LENGTH = 0.2;
 const MIN_DEPTH = 0.1;
-const DEFAULT_CANDIDATE_INDEX = 7; // "Meta aim ray": the physical pointing direction of the controller
+const DEFAULT_CANDIDATE_INDEX = 7; // "Meta aim ray": measured level (7 deg) when holding still aimed at the screen; -z was 44 deg up
 const SWEEP_STEP_MS = 4000;
 const POINTER_SWEEP: readonly (readonly [number, number])[] = [
   [0, 0],
@@ -34,7 +35,7 @@ const POINTER_SWEEP: readonly (readonly [number, number])[] = [
 ];
 
 /** Pointing axes to try live with Ctrl+Alt+[ ]: [name, axis in the controller frame] */
-const CANDIDATES: readonly (readonly [string, Vec3])[] = [
+export const CANDIDATES: readonly (readonly [string, Vec3])[] = [
   ["measured twist axis", [-0.134, 0.991, 0.025]],
   ["+x", [1, 0, 0]],
   ["-x", [-1, 0, 0]],
@@ -53,6 +54,7 @@ export interface PointerPosition {
 
 interface PointerUpdate extends PointerPosition {
   didRecenter: boolean;
+  direction: Vec3; // where the aim axis points in the world
 }
 
 /** Basis (right, forward, up) in the controller frame for a pointing axis and an "up" hint. */
@@ -115,7 +117,8 @@ export class Pointer {
   #screenUp: Vec3 = [0, 1, 0];
   #isRecenterNeeded = true;
   #wasClickPressed = false;
-  #edgeSince = 0;
+  #previousDirection: Vec3 | null = null;
+  #pinnedStillSince: number | null = null;
   readonly #filterX = new OneEuro();
   readonly #filterY = new OneEuro();
 
@@ -147,7 +150,12 @@ export class Pointer {
       matrix: rotation,
       vector: this.#aim
     });
-    if (this.#isPinnedLongEnough(direction)) {
+    if (
+      this.#isPinnedAndStill({
+        direction,
+        deltaSeconds
+      })
+    ) {
       this.#isRecenterNeeded = true;
     }
 
@@ -166,27 +174,46 @@ export class Pointer {
         direction,
         deltaSeconds
       }),
-      didRecenter
+      didRecenter,
+      direction
     };
     return update;
   }
 
-  #isPinnedLongEnough(direction: Vec3) {
+  /** Pinned at an edge while held still means the screen is not where you aim; a shake alone must not move it. */
+  #isPinnedAndStill({ direction, deltaSeconds }: { direction: Vec3; deltaSeconds: number }) {
+    const previous = this.#previousDirection;
+    this.#previousDirection = direction;
+    const turnedBy = previous
+      ? Math.acos(
+          clamp({
+            value:
+              dot({
+                first: previous,
+                second: direction
+              }) /
+              (norm(previous) * norm(direction)),
+            min: -1,
+            max: 1
+          })
+        )
+      : Infinity;
+    const isStill = turnedBy / deltaSeconds < STILL_RATE;
     const isPinned =
       Math.abs(this.#filterX.value ?? 0) >= EDGE_THRESHOLD || Math.abs(this.#filterY.value ?? 0) >= EDGE_THRESHOLD;
-    if (!isPinned) {
-      this.#edgeSince = 0;
+    if (!isPinned || !isStill) {
+      this.#pinnedStillSince = null;
       return false;
     }
 
-    this.#edgeSince ||= Date.now();
-    const isHeldLongEnough = Date.now() - this.#edgeSince > EDGE_HOLD_MS;
+    this.#pinnedStillSince ||= Date.now();
+    const isHeldLongEnough = Date.now() - this.#pinnedStillSince > EDGE_HOLD_MS;
     const isAimUsable = Math.abs(direction[1]) < USABLE_AIM_LIMIT;
     if (!isHeldLongEnough || !isAimUsable) {
       return false;
     }
 
-    this.#edgeSince = 0;
+    this.#pinnedStillSince = null;
     return true;
   }
 

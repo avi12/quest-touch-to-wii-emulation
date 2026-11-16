@@ -106,7 +106,8 @@ export interface DevicePose {
   trackingResult: number;
   rot: Mat3;
   pos: Vec3;
-  isNewerThan: (prev: { pos: Vec3; rot: Mat3 }) => boolean;
+  velocity: Vec3; // m/s, world frame, as SteamVR reports it
+  angularVelocity: Vec3; // rad/s, world frame, as SteamVR reports it
 }
 
 /** Sticks, triggers and buttons of one controller. */
@@ -136,6 +137,8 @@ const rawStateSchema = z.object({
 });
 const rawPoseSchema = z.object({
   m: floatsSchema(MATRIX_FLOATS),
+  velocity: floatsSchema(VECTOR_FLOATS),
+  angularVelocity: floatsSchema(VECTOR_FLOATS),
   valid: z.boolean(),
   trackingResult: z.number()
 });
@@ -152,20 +155,11 @@ function findDll() {
   return dll;
 }
 
-function isSameVec({ first, second }: { first: Vec3; second: Vec3 }) {
-  return first.every((value, i) => value === second[i]);
+function toVec3(floats: Float32Array) {
+  const vector: Vec3 = [floats[0] ?? 0, floats[1] ?? 0, floats[2] ?? 0];
+  return vector;
 }
 
-function isSameRot({ first, second }: { first: Mat3; second: Mat3 }) {
-  return first.every((row, i) =>
-    isSameVec({
-      first: row,
-      second: second[i] ?? row
-    })
-  );
-}
-
-/** A row-major 3x4 matrix split into its 3x3 rotation and its translation column. */
 function splitMatrix(floats: Float32Array) {
   function floatAt(i: number) {
     return floats[i] ?? 0;
@@ -285,24 +279,15 @@ export class OpenVr {
         return null;
       }
 
-      const { m, valid, trackingResult } = rawPoseSchema.parse(raw[index]);
+      const { m, valid, trackingResult, velocity, angularVelocity } = rawPoseSchema.parse(raw[index]);
       const { rot, origin: pos } = splitMatrix(m);
       return {
         valid,
         trackingResult,
         rot,
         pos,
-        isNewerThan: (prev: { pos: Vec3; rot: Mat3 }) =>
-          !(
-            isSameVec({
-              first: pos,
-              second: prev.pos
-            }) &&
-            isSameRot({
-              first: rot,
-              second: prev.rot
-            })
-          )
+        velocity: toVec3(velocity),
+        angularVelocity: toVec3(angularVelocity)
       };
     };
   }

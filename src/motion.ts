@@ -1,11 +1,11 @@
 import {
   add,
+  clamp,
   degreesToRadians,
   dot,
   multiplyTransposed,
   norm,
   radiansToDegrees,
-  rotationRate,
   scale,
   subtract
 } from "#/math.ts";
@@ -19,17 +19,18 @@ const SWING_GAIN = 1.0; // swing acceleration passed to Dolphin (gated by SWING_
 const SWING_LOW = 0.6;
 const SWING_HIGH = 1.2; // g: below LOW the motion is ignored (aiming), above HIGH it is passed in full
 const MAX_SWING_G = 3; // a real Wii Remote's accelerometer saturates near 3 g; far larger values corrupt Dolphin's motion tracking
+const ROLL_FADE_LOW = 0.25; // roll about the aim axis is meaningless when the aim is near vertical: gravity then has no sideways part
+const ROLL_FADE_HIGH = 0.5; // sideways gravity (0..1) at and above which roll is passed in full
 const ROLL_GAIN = 1.0; // 1 = hand follows the controller's roll 1:1; negative flips the direction
 const WORLD_UP: Vec3 = [0, 1, 0];
 const MAX_ANGULAR_RATE = degreesToRadians(1200); // faster than this is a tracking jump, not real motion
-const MIN_POSE_INTERVAL_SECONDS = 1e-3;
+const ACCELERATION_WINDOW_SECONDS = 0.025; // velocity change is measured over at least this long
 const ACCELERATION_SMOOTHING = 0.5;
 const NO_MOTION: Vec3 = [0, 0, 0];
 
-interface PoseSample {
-  pos: Vec3;
-  rot: Mat3;
-  velocity: Vec3 | null;
+interface VelocitySample {
+  at: number;
+  velocity: Vec3;
 }
 
 export interface Motion {
@@ -47,19 +48,27 @@ export const LEVEL_STILL_SENSORS: Sensors = {
   gyro: [0, 0, 0]
 };
 
-/** Differentiates successive poses into a smoothed world-frame acceleration and angular rate. */
+/**
+ * Turns SteamVR's own velocity and angular velocity into a smoothed world-frame acceleration and angular rate.
+ * Acceleration is the velocity change over a window, not a step: poses are extrapolated afresh on every call (about
+ * 750 a second), so differencing consecutive ones amplified noise into spikes of 20 g.
+ */
 export class MotionTracker {
-  #previous: PoseSample | null = null;
-  #previousAt = 0;
+  #history: VelocitySample[] = [];
   #linear: Vec3 = NO_MOTION;
   #angular: Vec3 = NO_MOTION;
   #smoothed: Vec3 = NO_MOTION;
 
   update({ pose, now }: { pose: DevicePose; now: number }) {
-    this.#trackPose({
-      pose,
+    this.#trackVelocity({
+      velocity: pose.velocity,
       now
     });
+    const isRealRotation = norm(pose.angularVelocity) <= MAX_ANGULAR_RATE; // faster is a tracking jump
+    if (isRealRotation) {
+      this.#angular = pose.angularVelocity;
+    }
+
     this.#smoothed = add({
       first: scale({
         vector: this.#smoothed,
@@ -77,61 +86,29 @@ export class MotionTracker {
     return motion;
   }
 
-  #trackPose({ pose, now }: { pose: DevicePose; now: number }) {
-    const previous = this.#previous;
-    if (!previous) {
-      this.#previous = {
-        pos: pose.pos,
-        rot: pose.rot,
-        velocity: null
-      };
-      this.#previousAt = now;
+  #trackVelocity({ velocity, now }: { velocity: Vec3; now: number }) {
+    this.#history.push({
+      at: now,
+      velocity
+    });
+    while ((this.#history[1]?.at ?? Infinity) <= now - ACCELERATION_WINDOW_SECONDS) {
+      this.#history.shift();
+    }
+
+    const anchor = this.#history[0];
+    const seconds = anchor ? now - anchor.at : 0;
+    const hasBaseline = anchor !== undefined && seconds >= ACCELERATION_WINDOW_SECONDS / 2;
+    if (!hasBaseline) {
       return;
     }
 
-    if (!pose.isNewerThan(previous)) {
-      return;
-    }
-
-    const seconds = now - this.#previousAt;
-    if (seconds <= MIN_POSE_INTERVAL_SECONDS) {
-      return;
-    }
-
-    const velocity = scale({
+    this.#linear = scale({
       vector: subtract({
-        first: pose.pos,
-        second: previous.pos
+        first: velocity,
+        second: anchor.velocity
       }),
       factor: 1 / seconds
     });
-    const linear = previous.velocity
-      ? scale({
-          vector: subtract({
-            first: velocity,
-            second: previous.velocity
-          }),
-          factor: 1 / seconds
-        })
-      : NO_MOTION;
-    const angular = rotationRate({
-      current: pose.rot,
-      previous: previous.rot,
-      seconds
-    });
-    this.#previous = {
-      pos: pose.pos,
-      rot: pose.rot,
-      velocity
-    };
-    this.#previousAt = now;
-
-    if (norm(angular) > MAX_ANGULAR_RATE) {
-      return;
-    }
-
-    this.#linear = linear;
-    this.#angular = angular;
   }
 }
 
@@ -184,7 +161,12 @@ export function toSensors({ rotation, basis, motion }: { rotation: Mat3; basis: 
       vector: WORLD_UP
     })
   });
-  const roll = Math.atan2(gravityInWiimote[0], gravityInWiimote[2]) * ROLL_GAIN;
+  const rollWeight = clamp({
+    value: (Math.hypot(gravityInWiimote[0], gravityInWiimote[2]) - ROLL_FADE_LOW) / (ROLL_FADE_HIGH - ROLL_FADE_LOW),
+    min: 0,
+    max: 1
+  });
+  const roll = Math.atan2(gravityInWiimote[0], gravityInWiimote[2]) * ROLL_GAIN * rollWeight;
   const rollOnlyGravity: Vec3 = [Math.sin(roll), 0, Math.cos(roll)];
   const swing = subtract({
     first: toWiimoteFrame({
@@ -203,7 +185,7 @@ export function toSensors({ rotation, basis, motion }: { rotation: Mat3; basis: 
   });
   const sensors: Sensors = {
     accel: [-right * FLIP_ACCEL[0], -upward * FLIP_ACCEL[1], forward * FLIP_ACCEL[2]],
-    gyro: [0, 0, rollRate * FLIP_GYRO[2]]
+    gyro: [0, 0, rollRate * rollWeight * FLIP_GYRO[2]]
   };
   return sensors;
 }

@@ -11,6 +11,7 @@ import { OpenVr, setTimerResolution } from "#/openvr.ts";
 import type { ControllerState } from "#/openvr.ts";
 import { Pointer, sweepPointer } from "#/pointer.ts";
 import type { PointerPosition } from "#/pointer.ts";
+import { Telemetry } from "#/telemetry.ts";
 import { SecondControllerWatcher } from "#/tracking.ts";
 
 const RATE_HZ = 250;
@@ -19,6 +20,7 @@ const STEP_SECONDS = 1 / RATE_HZ;
 const REPORT_INTERVAL_MS = 3000;
 const RECENTER_HOLD_MS = 300;
 const SWING_ACCEL_G = 1.5; // accel magnitude (g) that counts as a swing in progress
+const POINTER_HOLD_MS = 200; // the pointer stays where it was during a swing and this long after it
 const SWING_SETTLE_MS = 250; // calm this long after a swing, then Dolphin's motion tracking is recentred
 const TIMER_RESOLUTION_MS = 1;
 const DISPLAY_PRECISION = 100;
@@ -68,6 +70,12 @@ class Bridge {
   readonly #report = new Throttle();
   #isLeftEnabled = true;
   #lastPad: PadState | null = null;
+  readonly #telemetry = new Telemetry(config.telemetryPath);
+  #pointerFrozenUntil = 0;
+  #steadyPointer: PointerPosition = {
+    x: 0,
+    y: 0
+  };
   #lastSwingAt: number | null = null; // last moment a swing was in progress; null once Dolphin was recentred after it
 
   constructor() {
@@ -139,7 +147,7 @@ class Bridge {
     }
 
     const output = this.#applyOverrides({
-      pointer,
+      pointer: this.#holdPointerDuringSwing(pointer),
       sensors
     });
     const pad = buildPad({
@@ -153,6 +161,14 @@ class Bridge {
       gyro: [0, 0, 0]
     };
     this.#server.sendPad(pad);
+    this.#telemetry.record({
+      direction: pointer.direction,
+      pointer: output.pointer,
+      sensors: output.sensors,
+      didRecenter: pointer.didRecenter,
+      isMarked: right.b,
+      rotation: pose.rot
+    });
     this.#report.run(() =>
       this.#logStatus({
         isLeftTracked,
@@ -172,12 +188,30 @@ class Bridge {
     }
   }
 
+  /** A swing sweeps the aim far past the screen, so the pointer keeps its pre-swing position until the swing is over. */
+  #holdPointerDuringSwing<Pointer extends PointerPosition>(pointer: Pointer) {
+    const isFrozen = Date.now() < this.#pointerFrozenUntil;
+    if (!isFrozen) {
+      this.#steadyPointer = {
+        x: pointer.x,
+        y: pointer.y
+      };
+    }
+
+    const shown: Pointer = {
+      ...pointer,
+      ...this.#steadyPointer
+    };
+    return shown;
+  }
+
   /** A hard swing leaves Dolphin's motion tracking skewed; recentre it once the controller settles. */
   #recenterMotionAfterSwing(sensors: Sensors) {
     const now = Date.now();
     const isSwinging = Math.hypot(...sensors.accel) > SWING_ACCEL_G;
     if (isSwinging) {
       this.#lastSwingAt = now;
+      this.#pointerFrozenUntil = now + POINTER_HOLD_MS;
       return;
     }
 
