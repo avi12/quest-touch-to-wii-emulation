@@ -185,7 +185,7 @@ export function toSensors({ rotation, basis, motion }: { rotation: Mat3; basis: 
   });
   const sensors: Sensors = {
     accel: [-right * FLIP_ACCEL[0], -upward * FLIP_ACCEL[1], forward * FLIP_ACCEL[2]],
-    gyro: [0, 0, rollRate * rollWeight * FLIP_GYRO[2]]
+    gyro: [0, 0, rollRate * rollWeight * (1 - swingFactor) * FLIP_GYRO[2]] // no roll rate during a swing: Dolphin would integrate it into a lasting tilt
   };
   return sensors;
 }

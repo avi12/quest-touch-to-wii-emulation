@@ -166,6 +166,7 @@ class Bridge {
       pointer: output.pointer,
       sensors: output.sensors,
       didRecenter: pointer.didRecenter,
+      facing: pointer.facing,
       isMarked: right.b,
       rotation: pose.rot
     });
@@ -189,8 +190,8 @@ class Bridge {
   }
 
   /** A swing sweeps the aim far past the screen, so the pointer keeps its pre-swing position until the swing is over. */
-  #holdPointerDuringSwing<Pointer extends PointerPosition>(pointer: Pointer) {
-    const isFrozen = Date.now() < this.#pointerFrozenUntil;
+  #holdPointerDuringSwing<Pointer extends PointerPosition & { isAimedAway: boolean }>(pointer: Pointer) {
+    const isFrozen = pointer.isAimedAway || Date.now() < this.#pointerFrozenUntil;
     if (!isFrozen) {
       this.#steadyPointer = {
         x: pointer.x,

@@ -23,7 +23,12 @@ const STILL_RATE = degreesToRadians(20); // rad/s below which the controller cou
 const USABLE_AIM_LIMIT = 0.95; // aiming straight up/down has no usable screen plane
 const DEFAULT_UP_HINT_LIMIT = 0.9;
 const MIN_UP_LENGTH = 0.2;
-const MIN_DEPTH = 0.1;
+const CENTER: PointerPosition = {
+  x: 0,
+  y: 0
+};
+const POINTER_LIMIT = 0.95; // Dolphin drops each IR dot that leaves its camera frame; at +-1 one dot is already on the edge
+const MIN_DEPTH = 0.5; // cosine between the aim and the screen's normal below which the aim is ignored (60 degrees off); nearer the plane the projection blows up to a corner
 const DEFAULT_CANDIDATE_INDEX = 7; // "Meta aim ray": measured level (7 deg) when holding still aimed at the screen; -z was 44 deg up
 const SWEEP_STEP_MS = 4000;
 const POINTER_SWEEP: readonly (readonly [number, number])[] = [
@@ -54,6 +59,8 @@ export interface PointerPosition {
 
 interface PointerUpdate extends PointerPosition {
   didRecenter: boolean;
+  isAimedAway: boolean; // aimed too far from the screen to have a hit point; the caller keeps its last pointer
+  facing: number; // cosine between the aim and the screen's normal; low or negative means aimed away from the screen
   direction: Vec3; // where the aim axis points in the world
 }
 
@@ -117,6 +124,7 @@ export class Pointer {
   #screenUp: Vec3 = [0, 1, 0];
   #isRecenterNeeded = true;
   #wasClickPressed = false;
+  #facing = 1;
   #previousDirection: Vec3 | null = null;
   #pinnedStillSince: number | null = null;
   readonly #filterX = new OneEuro();
@@ -175,6 +183,8 @@ export class Pointer {
         deltaSeconds
       }),
       didRecenter,
+      isAimedAway: this.#facing < MIN_DEPTH,
+      facing: this.#facing,
       direction
     };
     return update;
@@ -267,13 +277,17 @@ export class Pointer {
   /** Where the aim ray hits a flat screen. */
   #project({ direction, deltaSeconds }: { direction: Vec3; deltaSeconds: number }) {
     const length = norm(direction);
-    const depth = Math.max(
-      MIN_DEPTH,
+    const depth =
       dot({
         first: direction,
         second: this.#screenNormal
-      }) / length
-    );
+      }) / length;
+    this.#facing = depth;
+    const isBehindScreen = depth < MIN_DEPTH; // aimed away from the screen: no hit point, so the pointer stays put
+    if (isBehindScreen) {
+      return CENTER; // placeholder: the caller sees isAimedAway and keeps its previous pointer
+    }
+
     const rawX =
       dot({
         first: direction,
@@ -299,13 +313,13 @@ export class Pointer {
     const position: PointerPosition = {
       x: clamp({
         value: filteredX,
-        min: -1,
-        max: 1
+        min: -POINTER_LIMIT,
+        max: POINTER_LIMIT
       }),
       y: clamp({
         value: filteredY + PITCH_BIAS,
-        min: -1,
-        max: 1
+        min: -POINTER_LIMIT,
+        max: POINTER_LIMIT
       })
     };
     return position;

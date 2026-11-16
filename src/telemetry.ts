@@ -20,6 +20,7 @@ interface TelemetrySample {
   };
   didRecenter: boolean;
   rotation: Mat3;
+  facing: number;
   isMarked: boolean; // B held: the person is recording a take to analyse
 }
 
@@ -36,7 +37,7 @@ export class Telemetry {
     this.#stream = path ? createWriteStream(path, { flags: "a" }) : null;
   }
 
-  record({ direction, pointer, sensors, didRecenter, isMarked, rotation }: TelemetrySample) {
+  record({ direction, pointer, sensors, didRecenter, isMarked, rotation, facing }: TelemetrySample) {
     const now = Date.now();
     const isDue = now - this.#lastWrittenAt >= SAMPLE_EVERY_MS;
     if (!this.#stream || (!isDue && !didRecenter)) {
@@ -54,6 +55,7 @@ export class Telemetry {
       accel: sensors.accel.map(round),
       gyroRoll: round(sensors.gyro[2]),
       rotation: rotation.flat().map(round),
+      facing: round(facing),
       recenter: didRecenter,
       mark: isMarked
     };
