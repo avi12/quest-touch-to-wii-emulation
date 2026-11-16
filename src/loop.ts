@@ -259,8 +259,8 @@ class Bridge {
         };
     const isHandParked = config.isPlayer2 && !this.#isLeftEnabled;
     const parked: Output = {
-      ...output,
-      pointer: PARKED_POINTER
+      pointer: PARKED_POINTER,
+      sensors: LEVEL_STILL_SENSORS // a switched-off left controller must not punch through a Nunchuk's motion
     };
     return isHandParked ? parked : output;
   }
