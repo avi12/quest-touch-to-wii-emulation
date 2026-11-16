@@ -40,7 +40,7 @@ function toByte(analog: number) {
   return Math.trunc(analog * BYTE_MAX);
 }
 
-function firstButtons({ right, left }: Controllers) {
+function firstButtons({ right, left, isLeftAttached }: Controllers & { isLeftAttached: boolean }) {
   const [stickX, stickY] = right.stick;
   return combineFlags([
     [stickY > STICK_THRESHOLD, BUTTONS_1.up],
@@ -48,7 +48,7 @@ function firstButtons({ right, left }: Controllers) {
     [stickX > STICK_THRESHOLD, BUTTONS_1.right],
     [stickX < -STICK_THRESHOLD, BUTTONS_1.left],
     [right.click, BUTTONS_1.r3],
-    [left.click, BUTTONS_1.l3],
+    [isLeftAttached, BUTTONS_1.l3], // Dolphin's Extension is bound to L3: on = Nunchuk plugged in
     [left.sys, BUTTONS_1.options],
     [right.sys, BUTTONS_1.share]
   ]);
@@ -70,9 +70,11 @@ function secondButtons({ right, left }: Controllers) {
 export function buildPad({
   right,
   left,
+  isLeftAttached,
   pointer,
   sensors
 }: Controllers & {
+  isLeftAttached: boolean; // the left controller is switched on and tracked
   pointer: PointerPosition;
   sensors: Sensors;
 }) {
@@ -81,7 +83,8 @@ export function buildPad({
   const pad: PadState = {
     buttons1: firstButtons({
       right,
-      left
+      left,
+      isLeftAttached
     }),
     buttons2: secondButtons({
       right,

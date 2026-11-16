@@ -153,6 +153,7 @@ class Bridge {
     const pad = buildPad({
       right,
       left,
+      isLeftAttached: !config.isPlayer2 && this.#isLeftEnabled && isLeftTracked,
       pointer: output.pointer,
       sensors: output.sensors
     });
