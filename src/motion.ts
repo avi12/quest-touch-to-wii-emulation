@@ -15,7 +15,7 @@ import type { DevicePose } from "#/openvr.ts";
 const GRAVITY = 9.80665;
 const FLIP_ACCEL: Vec3 = [1, 1, 1]; // tweak if Dolphin shows an axis inverted
 const FLIP_GYRO: Vec3 = [1, 1, 1];
-const SWING_GAIN = 1.0; // swing acceleration passed to Dolphin (gated by SWING_LOW/HIGH so gentle aiming cannot bend the motion pointer's pitch)
+const SWING_GAIN = 1.3; // swing acceleration passed to Dolphin (gated by SWING_LOW/HIGH so gentle aiming cannot bend the motion pointer's pitch)
 const SWING_LOW = 0.6;
 const SWING_HIGH = 1.2; // g: below LOW the motion is ignored (aiming), above HIGH it is passed in full
 const MAX_SWING_G = 3; // a real Wii Remote's accelerometer saturates near 3 g; far larger values corrupt Dolphin's motion tracking
@@ -24,8 +24,8 @@ const ROLL_FADE_HIGH = 0.5; // sideways gravity (0..1) at and above which roll i
 const ROLL_GAIN = 1.0; // 1 = hand follows the controller's roll 1:1; negative flips the direction
 const WORLD_UP: Vec3 = [0, 1, 0];
 const MAX_ANGULAR_RATE = degreesToRadians(1200); // faster than this is a tracking jump, not real motion
-const ACCELERATION_WINDOW_SECONDS = 0.025; // velocity change is measured over at least this long
-const ACCELERATION_SMOOTHING = 0.5;
+const ACCELERATION_WINDOW_SECONDS = 0.015; // velocity change is measured over at least this long
+const ACCELERATION_SMOOTHING = 0.35;
 const NO_MOTION: Vec3 = [0, 0, 0];
 
 interface VelocitySample {
@@ -112,6 +112,15 @@ export class MotionTracker {
   }
 }
 
+/** Each axis of a real Wii Remote's accelerometer saturates on its own, so the cap is per axis, not on the total. */
+function limitAxis(value: number) {
+  return clamp({
+    value,
+    min: -MAX_SWING_G,
+    max: MAX_SWING_G
+  });
+}
+
 /** Controller frame -> Wiimote frame (right, forward, up) using the pointing basis. */
 function toWiimoteFrame({ basis, vector }: { basis: Mat3; vector: Vec3 }) {
   const wiimoteVector: Vec3 = [
@@ -176,12 +185,13 @@ export function toSensors({ rotation, basis, motion }: { rotation: Mat3; basis: 
     second: gravityInWiimote
   });
   const swingFactor = Math.min(1, Math.max(0, (norm(swing) - SWING_LOW) / (SWING_HIGH - SWING_LOW)));
+  const boosted = scale({
+    vector: swing,
+    factor: SWING_GAIN * swingFactor
+  });
   const [right, forward, upward] = add({
     first: rollOnlyGravity,
-    second: scale({
-      vector: swing,
-      factor: SWING_GAIN * swingFactor * Math.min(1, MAX_SWING_G / Math.max(norm(swing), 1e-9))
-    })
+    second: [limitAxis(boosted[0]), limitAxis(boosted[1]), limitAxis(boosted[2])]
   });
   const sensors: Sensors = {
     accel: [-right * FLIP_ACCEL[0], -upward * FLIP_ACCEL[1], forward * FLIP_ACCEL[2]],
