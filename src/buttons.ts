@@ -59,8 +59,8 @@ function secondButtons({ right, left }: Controllers) {
     [right.a, BUTTONS_2.a],
     [right.b, BUTTONS_2.b],
     [left.a, BUTTONS_2.x],
-    [left.b, BUTTONS_2.y],
-    [right.trig > PRESS_THRESHOLD, BUTTONS_2.r2],
+    [left.b, BUTTONS_2.r2], // Dolphin's Wii button 2 is bound to the analog R2 (see triggers in buildPad)
+    [right.trig > PRESS_THRESHOLD, BUTTONS_2.y], // Dolphin's Wii Home is bound to Triangle
     [left.trig > PRESS_THRESHOLD, BUTTONS_2.l2],
     [right.grip > PRESS_THRESHOLD, BUTTONS_2.r1],
     [left.grip > PRESS_THRESHOLD, BUTTONS_2.l1]
@@ -77,7 +77,7 @@ export function buildPad({
   sensors: Sensors;
 }) {
   const sticks: Quad = [stickByte(left.stick[0]), stickByte(left.stick[1]), stickByte(pointer.x), stickByte(pointer.y)];
-  const triggers: Quad = [toByte(right.grip), toByte(left.grip), toByte(right.trig), toByte(left.trig)];
+  const triggers: Quad = [toByte(right.grip), toByte(left.grip), toByte(Number(left.b)), toByte(left.trig)];
   const pad: PadState = {
     buttons1: firstButtons({
       right,

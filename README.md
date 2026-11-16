@@ -36,9 +36,9 @@ The headset only _tracks_ the controllers. SteamVR hands their poses to a small 
 | A                   | A                           |
 | Right grip          | B                           |
 | B                   | 1                           |
-| Right trigger       | 2                           |
+| Y                   | 2                           |
 | X                   | −                           |
-| Y                   | Home                        |
+| Right trigger       | Home                        |
 | Left menu           | +                           |
 | Right thumbstick    | D-pad                       |
 | Thumbstick click    | Recenter                    |
