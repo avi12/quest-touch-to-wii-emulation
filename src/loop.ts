@@ -7,12 +7,12 @@ import type { PadState } from "#/dsu_server.ts";
 import { Hotkeys } from "#/hotkeys.ts";
 import { LEVEL_STILL_SENSORS, MotionTracker, toSensors } from "#/motion.ts";
 import type { Sensors } from "#/motion.ts";
-import { OpenVr, setTimerResolution } from "#/openvr.ts";
+import { beep, OpenVr, setTimerResolution } from "#/openvr.ts";
 import type { ControllerState } from "#/openvr.ts";
 import { Pointer, sweepPointer } from "#/pointer.ts";
 import type { PointerPosition } from "#/pointer.ts";
 import { Telemetry } from "#/telemetry.ts";
-import { SecondControllerWatcher } from "#/tracking.ts";
+import { BEEP_MS, CONNECTED_BEEP_HZ, DISCONNECTED_BEEP_HZ, SecondControllerWatcher } from "#/tracking.ts";
 
 const RATE_HZ = 250;
 const MS_PER_SECOND = 1000;
@@ -230,6 +230,10 @@ class Bridge {
     if (isLeftToggled) {
       this.#isLeftEnabled = !this.#isLeftEnabled;
       console.log("LEFT CONTROLLER", this.#isLeftEnabled ? "ON" : "OFF");
+
+      if (!config.isPlayer2) {
+        beep(this.#isLeftEnabled ? CONNECTED_BEEP_HZ : DISCONNECTED_BEEP_HZ, BEEP_MS); // one bridge beeps, not both
+      }
     }
 
     if (candidateStep !== 0) {

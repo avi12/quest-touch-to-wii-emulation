@@ -1,9 +1,9 @@
 import { beep } from "#/openvr.ts";
 
 const HOLD_MS = 1000; // a change must hold this long (ignores tracking blips)
-const CONNECTED_BEEP_HZ = 1200;
-const DISCONNECTED_BEEP_HZ = 500;
-const BEEP_MS = 200;
+export const CONNECTED_BEEP_HZ = 1200;
+export const DISCONNECTED_BEEP_HZ = 500;
+export const BEEP_MS = 200;
 
 /** Beeps and logs when the second (left) controller connects or disconnects. */
 export class SecondControllerWatcher {
