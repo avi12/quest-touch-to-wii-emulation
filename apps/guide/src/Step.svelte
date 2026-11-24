@@ -39,7 +39,7 @@
   .card {
     padding: 16px;
     border-radius: 8px;
-    background: var(--CardBackgroundFillColorDefaultBrush);
+    background-color: var(--card-background-fill-color-default);
   }
 
   .body {

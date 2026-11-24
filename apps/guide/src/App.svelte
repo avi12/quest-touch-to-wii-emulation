@@ -2,19 +2,22 @@
   import Step from "./Step.svelte";
   import { bridges } from "./lib/bridges.svelte.ts";
   import { applyDolphinConfig, isDolphinConfigured } from "./lib/dolphin-config.ts";
-  import { bridgeExe } from "./lib/home.ts";
+  import { bridgeExe, iconFile } from "./lib/home.ts";
   import { launchWiiMenu, loadPaths, type Paths, savePaths } from "./lib/settings.ts";
   import { isRunning, openUri, PROCESS, startSteamVr } from "./lib/system.ts";
   import { onMount } from "svelte";
   import type { WindowHandle } from "winui-svelte/components";
   import { Button, ScrollViewer, StackPanel, TextBlock, Window } from "winui-svelte/components";
+  import { hideToTray, restoreFromTray, toggleInTray, TrayIcon } from "winui-svelte/tray";
   import { exitApplication } from "winui-svelte/window";
 
-  // The setup guide: each step says what to do, checks whether it is done, and does what it can.
+  // The app: each step says what to do, checks whether it is done, and does what it can. While the
+  // bridges run, closing the window keeps them going in the tray; Quit stops everything.
 
   const WINDOW_WIDTH = 760;
   const WINDOW_HEIGHT = 920;
   const REFRESH_MS = 2000;
+  const TRAY_GUID = "3b6f0d8e-5a41-4c2b-9e7d-1f6a2c8b9d04";
   const README = "https://github.com/avi12/quest-touch-to-wii-emulation#readme";
 
   let handle: WindowHandle | undefined = $state();
@@ -24,9 +27,17 @@
   let configMessage = $state("");
   let paths = $state<Paths>({ dolphin: "", disc: "" });
   const hasBridge = bridgeExe() !== null;
+  let hasAutoStarted = false;
 
   async function refresh() {
     isSteamVrUp = await isRunning(PROCESS.steamVr);
+    // Once SteamVR is up the bridges can see the controllers: start them without a click, once.
+    const shouldAutoStart = isSteamVrUp && hasBridge && !hasAutoStarted && !bridges.isRunning;
+    if (shouldAutoStart) {
+      hasAutoStarted = true;
+      bridges.start();
+    }
+
     isDolphinOpen = await isRunning(PROCESS.dolphin);
     isConfigured = await isDolphinConfigured();
   }
@@ -68,11 +79,35 @@
     await savePaths(paths);
   }
 
+  /** The window's close button: keep playing in the tray while the bridges run. */
+  function onclosing() {
+    if (!bridges.isRunning || !handle) {
+      return false;
+    }
+
+    hideToTray(handle);
+    return true;
+  }
+
+  function quit() {
+    bridges.stop();
+    exitApplication();
+  }
+
   const canLaunch = $derived(paths.dolphin !== "" && paths.disc !== "" && !isDolphinOpen);
   const fileName = (path: string) => path.split("\\").at(-1) ?? path;
 </script>
 
-<Window height={WINDOW_HEIGHT} onclosed={exitApplication} title="Touch → Dolphin setup" width={WINDOW_WIDTH} bind:handle>
+<Window
+  backdrop="acrylic"
+  height={WINDOW_HEIGHT}
+  icon={iconFile()}
+  {onclosing}
+  onclosed={quit}
+  title="Touch → Dolphin"
+  width={WINDOW_WIDTH}
+  bind:handle
+>
   <ScrollViewer>
     <StackPanel class="page">
       <TextBlock class="heading">Play Wii games with Quest Touch controllers</TextBlock>
@@ -159,9 +194,21 @@
           <Button onclick={() => openUri(README)}>Read the full guide</Button>
         {/snippet}
       </Step>
+
+      <TextBlock class="lead">
+        Closing this window keeps the bridges running in the tray (the ring icon); click it to come back.
+      </TextBlock>
+      <Button onclick={quit}>Quit (stops the bridges)</Button>
     </StackPanel>
   </ScrollViewer>
 </Window>
+<TrayIcon
+  guid={TRAY_GUID}
+  icon={iconFile()}
+  onclick={() => handle && toggleInTray(handle)}
+  oncontextmenu={() => handle && restoreFromTray(handle)}
+  tooltip={`Touch → Dolphin: bridges ${bridges.isRunning ? "running" : "stopped"}`}
+/>
 
 <style>
   .page {

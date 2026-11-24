@@ -5,7 +5,7 @@ import path from "node:path";
 import { buildApp } from "winui-svelte/vite";
 
 // Packages the guide for a release, into <repo>/target/guide:
-//   Setup Guide.exe   Node's single-executable app, switched to the GUI subsystem (no console)
+//   Touch Dolphin.exe   Node's single-executable app, switched to the GUI subsystem (no console)
 //   main.js, window.js, node_modules, bin, css   what buildApp emits; the exe runs main.js
 //   touch_dsu.exe, config/   the bridge and the Dolphin config the guide installs
 // The release workflow zips that folder.
@@ -13,7 +13,7 @@ import { buildApp } from "winui-svelte/vite";
 const root = import.meta.dirname;
 const repo = path.resolve(root, "..", "..");
 const output = path.join(repo, "target", "guide");
-const exeName = "Setup Guide.exe";
+const exeName = "Touch Dolphin.exe";
 const PE_POINTER_OFFSET = 0x3c;
 const SUBSYSTEM_OFFSET_IN_OPTIONAL_HEADER = 68;
 const OPTIONAL_HEADER_OFFSET = 24;
@@ -63,4 +63,5 @@ writeFileSync(path.join(output, "package.json"), JSON.stringify({ type: "module"
 cpSync(path.join(repo, "target", "release", "touch_dsu.exe"), path.join(output, "touch_dsu.exe"));
 mkdirSync(path.join(output, "config"), { recursive: true });
 cpSync(path.join(repo, "config"), path.join(output, "config"), { recursive: true });
+cpSync(path.join(root, "assets", "app.ico"), path.join(output, "app.ico"));
 process.stdout.write(`guide packaged in ${output}\n`);

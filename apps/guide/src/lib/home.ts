@@ -15,6 +15,12 @@ function findHome() {
 export const home = findHome();
 export const configFolder = join(home, "config");
 
+/** The tray icon: beside the exe in a release, in the app's assets from source. */
+export function iconFile() {
+  const candidates = [join(dirname(process.execPath), "app.ico"), join(home, "apps", "guide", "assets", "app.ico")];
+  return candidates.find(path => existsSync(path)) ?? "";
+}
+
 /** The bridge exe: shipped beside the guide, or the repository's release build. */
 export function bridgeExe() {
   const candidates = [join(home, BRIDGE_EXE), join(home, "target", "release", BRIDGE_EXE)];
