@@ -1,0 +1,39 @@
+# Builds the self-updating touch_dsu.exe for every published release and attaches it.
+# TOUCH_DSU_RELEASE=1 is what turns the updater on; local builds never set it.
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Check the tag matches the Cargo version
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path Cargo.toml -Pattern '^version = "(.+)"').Matches[0].Groups[1].Value
+          if ("v$version" -ne '${{ github.event.release.tag_name }}') {
+            throw "tag ${{ github.event.release.tag_name }} does not match Cargo.toml version $version"
+          }
+
+      - name: Test
+        run: cargo test --workspace --locked
+
+      - name: Build the release exe
+        env:
+          TOUCH_DSU_RELEASE: "1"
+        run: cargo build --release --locked -p bridge
+
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload ${{ github.event.release.tag_name }} target/release/touch_dsu.exe --clobber
