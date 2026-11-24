@@ -54,7 +54,7 @@ Details that matter:
 - Auto-recenter when the pointer is pinned at an edge while the controller is held still for 0.8 s (a shake alone never moves the screen; never when pointing straight up or down).
 - The pointer is limited to ±0.95: Dolphin drops each IR dot that leaves its 1024×768 camera frame, so at ±1 one dot is already on the edge. Roll rate is not sent during a swing (Dolphin would integrate it into a lasting tilt).
 - When the aim points away from the screen (more than 60° off its normal) there is no hit point, so the pointer keeps its pre-swing position instead of jumping to a corner.
-- While a swing is in progress (acceleration over 1.5 g) the pointer keeps its pre-swing position and resumes 200 ms after it ends, because a hard swing sweeps the aim far past the screen.
+- While a swing is in progress (acceleration over 1.5 g) the pointer still follows the aim, so fast pointing works; only when the swing sweeps it to the screen edge does it keep its last on-screen position, until 200 ms after the swing ends.
 - Swing acceleration is passed to Dolphin only above ~0.6–1.2 g. Gentle aiming accelerations bend the IMU pointer's _pitch_ (Dolphin corrects pitch with the accelerometer), which made vertical motion wobble.
 
 ## 5. Dolphin gotchas

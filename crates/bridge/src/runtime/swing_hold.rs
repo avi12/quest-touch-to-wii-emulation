@@ -1,4 +1,4 @@
-//! Swings: the pointer holds still through them, and Dolphin's motion tracking is held recentred
+//! Swings: the pointer follows them but is not flung to the screen edge, and Dolphin's motion tracking is held recentred
 //! through them and recentred again once they settle.
 
 use std::time::{Duration, Instant};
@@ -47,11 +47,12 @@ impl SwingHold {
         true
     }
 
-    /// A swing sweeps the aim far past the screen, so the pointer keeps its pre-swing position
-    /// until the swing is over.
+    /// The pointer follows a fast move while it stays on screen; when a swing sweeps it to the
+    /// edge, it keeps its last on-screen position until the swing is over.
     pub(crate) fn hold(&mut self, pointer: &PointerUpdate, now: Instant) -> PointerPosition {
-        let is_frozen =
-            pointer.is_aimed_away || self.pointer_frozen_until.is_some_and(|until| now < until);
+        let is_swinging = self.pointer_frozen_until.is_some_and(|until| now < until);
+        let is_swept_off_screen = is_swinging && pointer.position.is_at_edge();
+        let is_frozen = pointer.is_aimed_away || is_swept_off_screen;
         if !is_frozen {
             self.steady_pointer = pointer.position;
         }
@@ -79,8 +80,8 @@ mod tests {
     const JUST_HELD_MS: u64 = 199;
     const RELEASED_MS: u64 = 200;
     const STEADY_X: f64 = 0.1;
-    const SWEPT_X: f64 = 0.9;
-    const HELD_X: f64 = 0.8;
+    const FOLLOWED_X: f64 = 0.9;
+    const EDGE_X: f64 = 0.95;
     const RELEASED_X: f64 = 0.5;
     const AWAY_X: f64 = 0.3;
 
@@ -120,16 +121,22 @@ mod tests {
     }
 
     #[test]
-    fn pointer_holds_through_the_swing_and_200_ms_after() {
+    fn pointer_follows_a_fast_move_but_not_off_the_screen() {
         let start = Instant::now();
         let mut swing = SwingHold::default();
         assert_eq!(swing.hold(&aimed(STEADY_X, false), start).x, STEADY_X);
         swing.observe(SWING, start);
-        assert_eq!(swing.hold(&aimed(SWEPT_X, false), start).x, STEADY_X);
-        let held = swing.hold(&aimed(HELD_X, false), after(start, JUST_HELD_MS));
-        assert_eq!(held.x, STEADY_X);
-        let released = swing.hold(&aimed(RELEASED_X, false), after(start, RELEASED_MS));
-        assert_eq!(released.x, RELEASED_X);
+        assert_eq!(swing.hold(&aimed(FOLLOWED_X, false), start).x, FOLLOWED_X);
+        let held = swing.hold(&aimed(EDGE_X, false), after(start, JUST_HELD_MS));
+        assert_eq!(held.x, FOLLOWED_X);
+        let released = swing.hold(&aimed(EDGE_X, false), after(start, RELEASED_MS));
+        assert_eq!(released.x, EDGE_X);
+        assert_eq!(
+            swing
+                .hold(&aimed(RELEASED_X, false), after(start, RELEASED_MS))
+                .x,
+            RELEASED_X
+        );
     }
 
     #[test]

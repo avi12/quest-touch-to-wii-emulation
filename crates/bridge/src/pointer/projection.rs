@@ -71,3 +71,10 @@ impl Projector {
         }
     }
 }
+
+impl PointerPosition {
+    /// Whether the pointer is pinned at the edge of the screen (the clamp at [`POINTER_LIMIT`]).
+    pub fn is_at_edge(self) -> bool {
+        self.x.abs() >= POINTER_LIMIT || self.y.abs() >= POINTER_LIMIT
+    }
+}
