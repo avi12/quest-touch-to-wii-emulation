@@ -1,6 +1,6 @@
 {
   "name": "touch-dsu-guide",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "Step-by-step setup guide for the Quest Touch to Dolphin bridge, as a native WinUI app",
   "license": "Apache-2.0",
