@@ -1,5 +1,6 @@
 <script lang="ts">
   import Step from "./Step.svelte";
+  import { findUpdate, installUpdate } from "./lib/app-update.ts";
   import { bridges } from "./lib/bridges.svelte.ts";
   import { applyDolphinConfig, isDolphinConfigured } from "./lib/dolphin-config.ts";
   import { bridgeExe, iconFile } from "./lib/home.ts";
@@ -7,7 +8,7 @@
   import { isRunning, openUri, PROCESS, startSteamVr } from "./lib/system.ts";
   import { onMount } from "svelte";
   import type { WindowHandle } from "winui-svelte/components";
-  import { Button, ScrollViewer, StackPanel, TextBlock, Window } from "winui-svelte/components";
+  import { Button, InfoBar, ScrollViewer, StackPanel, TextBlock, Window } from "winui-svelte/components";
   import { hideToTray, restoreFromTray, toggleInTray, TrayIcon } from "winui-svelte/tray";
   import { exitApplication } from "winui-svelte/window";
 
@@ -28,6 +29,8 @@
   let paths = $state<Paths>({ dolphin: "", disc: "" });
   const hasBridge = bridgeExe() !== null;
   let hasAutoStarted = false;
+  let update = $state<string | null>(null);
+  let updateMessage = $state("");
 
   async function refresh() {
     isSteamVrUp = await isRunning(PROCESS.steamVr);
@@ -44,6 +47,7 @@
 
   onMount(() => {
     void loadPaths().then(saved => (paths = saved));
+    void findUpdate().then(found => (update = found));
     void refresh();
     const interval = setInterval(() => void refresh(), REFRESH_MS);
     return () => clearInterval(interval);
@@ -89,6 +93,20 @@
     return true;
   }
 
+  async function applyUpdate() {
+    if (!update) {
+      return;
+    }
+
+    updateMessage = `Downloading ${update}…`;
+    try {
+      await installUpdate(update);
+      quit();
+    } catch (error) {
+      updateMessage = `Update failed: ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+
   function quit() {
     bridges.stop();
     exitApplication();
@@ -114,6 +132,19 @@
       <TextBlock class="lead">
         Work down the steps. Each one checks itself; the buttons do what can be done for you.
       </TextBlock>
+
+      {#if update}
+        <InfoBar
+          isClosable={false}
+          isOpen
+          message={updateMessage || `Version ${update} is out. The app restarts on its own after updating.`}
+          title="Update available"
+        >
+          {#snippet actionButton()}
+            <Button onclick={applyUpdate}>Update now</Button>
+          {/snippet}
+        </InfoBar>
+      {/if}
 
       <Step isDone={isSteamVrUp} number={1} status={isSteamVrUp ? "SteamVR is running" : "SteamVR is not running yet"} title="Connect the headset">
         <TextBlock>

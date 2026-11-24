@@ -59,7 +59,9 @@ bytes.writeUInt16LE(GUI_SUBSYSTEM, peOffset + OPTIONAL_HEADER_OFFSET + SUBSYSTEM
 writeFileSync(exe, bytes);
 
 // main.js and window.js are ES modules; say so, so Node does not parse them twice.
-writeFileSync(path.join(output, "package.json"), JSON.stringify({ type: "module" }));
+const { version } = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")) as { version: string };
+// The version is what the app's self-update compares with the newest release.
+writeFileSync(path.join(output, "package.json"), JSON.stringify({ type: "module", version }));
 cpSync(path.join(repo, "target", "release", "touch_dsu.exe"), path.join(output, "touch_dsu.exe"));
 mkdirSync(path.join(output, "config"), { recursive: true });
 cpSync(path.join(repo, "config"), path.join(output, "config"), { recursive: true });
