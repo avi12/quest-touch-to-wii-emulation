@@ -9,6 +9,31 @@ repository.workspace = true
 publish.workspace = true
 
 [dependencies]
+bridge = { path = "../bridge" }
+dsu = { path = "../dsu" }
+openvr-sys = { path = "../openvr-sys" }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+
+[[bin]]
+name = "dsu_probe"
+path = "src/bin/dsu_probe.rs"
+
+[[bin]]
+name = "list_devices"
+path = "src/bin/list_devices.rs"
+
+[[bin]]
+name = "controller_tip_pose"
+path = "src/bin/controller_tip_pose.rs"
+
+[[bin]]
+name = "calibrate_pointing_axis"
+path = "src/bin/calibrate_pointing_axis.rs"
+
+[[bin]]
+name = "telemetry_tail"
+path = "src/bin/telemetry_tail.rs"
 
 # avi12-lint:begin rust-config (generated from rust-config-avi12; edit avi12-rust.local.toml)
 [lints.rust]
