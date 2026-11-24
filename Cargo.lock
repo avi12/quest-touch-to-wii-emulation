@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "bridge"
-version = "1.0.0"
+version = "0.0.1"
 dependencies = [
  "dsu",
  "geometry",
@@ -15,7 +15,7 @@ dependencies = [
 
 [[package]]
 name = "dsu"
-version = "1.0.0"
+version = "0.0.1"
 dependencies = [
  "geometry",
  "numeric",
@@ -23,22 +23,22 @@ dependencies = [
 
 [[package]]
 name = "geometry"
-version = "1.0.0"
+version = "0.0.1"
 
 [[package]]
 name = "numeric"
-version = "1.0.0"
+version = "0.0.1"
 
 [[package]]
 name = "openvr-sys"
-version = "1.0.0"
+version = "0.0.1"
 dependencies = [
  "geometry",
 ]
 
 [[package]]
 name = "tools"
-version = "1.0.0"
+version = "0.0.1"
 dependencies = [
  "bridge",
  "dsu",
@@ -49,4 +49,4 @@ dependencies = [
 
 [[package]]
 name = "win32-sys"
-version = "1.0.0"
+version = "0.0.1"
