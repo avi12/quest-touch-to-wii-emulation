@@ -5,6 +5,9 @@
 //! drives a Nunchuk. A second copy (`BRIDGE_PORT=26761 BRIDGE_HAND=left`) turns the left
 //! controller into Wii Remote 2.
 //!
+//! Started with no `BRIDGE_HAND` (a double-click), it is a launcher instead: it updates itself
+//! from the newest GitHub release (official builds only) and then runs both bridges.
+//!
 //! Needs `SteamVR` running with the headset connected (Air Link / Link / Virtual Desktop). No VR
 //! display is used. Hotkeys (global, Ctrl+Alt so they never clash with Dolphin's): L toggles the
 //! left controller, ] and [ cycle the pointing axis. Thumbstick click = recenter. See README.md
@@ -14,8 +17,13 @@ use std::process::ExitCode;
 
 use bridge::config::Config;
 use bridge::runtime::run_bridge;
+use bridge::{launcher, update};
 
 fn main() -> ExitCode {
+    update::remove_leftovers();
+    if launcher::is_launcher() {
+        return update::run().unwrap_or_else(launcher::run);
+    }
     let config = match Config::from_env() {
         Ok(config) => config,
         Err(error) => {

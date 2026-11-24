@@ -9,12 +9,12 @@ use std::path::PathBuf;
 use dsu::Port;
 use openvr_sys::Hand;
 
-const PORT_VAR: &str = "BRIDGE_PORT";
-const HAND_VAR: &str = "BRIDGE_HAND";
+pub(crate) const PORT_VAR: &str = "BRIDGE_PORT";
+pub(crate) const HAND_VAR: &str = "BRIDGE_HAND";
 /// Diagnostic: sweep known pointer values, ignoring the controller.
 const POINTER_TEST_VAR: &str = "PTR_TEST";
 /// File to stream controller movement, pointer and sensors to (JSON lines).
-const TELEMETRY_VAR: &str = "BRIDGE_TELEMETRY";
+pub(crate) const TELEMETRY_VAR: &str = "BRIDGE_TELEMETRY";
 
 /// Where the pointer comes from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

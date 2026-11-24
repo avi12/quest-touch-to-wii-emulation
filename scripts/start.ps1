@@ -15,6 +15,7 @@ cargo build --release -p bridge --manifest-path (Join-Path $root 'Cargo.toml')
 if ($LASTEXITCODE -ne 0) { "build failed; bridges not started"; return }
 $exe = Join-Path $root 'target\release\touch_dsu.exe'
 
+$env:BRIDGE_HAND = 'right'  # set explicitly: without BRIDGE_HAND the exe is the two-bridge launcher
 if ($Telemetry) { $env:BRIDGE_TELEMETRY = Join-Path $root 'telemetry-right.jsonl' }
 $right = Start-Process $exe -WorkingDirectory $root -WindowStyle Minimized -PassThru -RedirectStandardOutput (Join-Path $root 'right.log') -RedirectStandardError (Join-Path $root 'right.err.log')
 $env:BRIDGE_PORT = '26761'; $env:BRIDGE_HAND = 'left'
