@@ -45,7 +45,7 @@ The headset only _tracks_ the controllers. SteamVR hands their poses to a small 
 
 The left controller acts as a Nunchuk on Wii Remote 1: stick = stick, grip = C, trigger = Z, and its motion drives the Nunchuk's accelerometer, so Boxing punches work with both hands. **Ctrl+Alt+L** switches the left controller on and off while you play, and the game sees the Nunchuk being plugged in or pulled out (the bridge sends L3 while the left controller is on and tracked, and `config/WiimoteNew.ini` binds Wii Remote 1's `Extension` to it). For two players, use Wii Remote 2 on the left controller instead.
 
-**Hotkeys** (global, Ctrl+Alt so they never clash with Dolphin's own F-keys):
+**Hotkeys** (global, Ctrl+Alt so they never clash with Dolphin's own F-keys; either Ctrl and either Alt work, so Right Ctrl + Right Alt does too):
 
 | Keys           | Action                                                                         |
 | -------------- | ------------------------------------------------------------------------------ |

@@ -10,10 +10,11 @@ unsafe extern "system" {
 /// High bit of `GetAsyncKeyState`: the key is down right now.
 const KEY_DOWN_MASK: u16 = 0x8000;
 
-/// `VK_CONTROL`.
-const VK_CONTROL: i32 = 0x11;
-/// `VK_MENU`.
-const VK_MENU: i32 = 0x12;
+/// `VK_CONTROL`, `VK_LCONTROL`, `VK_RCONTROL`: Windows reports the generic code for either side,
+/// but the sided ones are checked too so Right Ctrl always counts.
+const CONTROL_CODES: [i32; 3] = [0x11, 0xa2, 0xa3];
+/// `VK_MENU`, `VK_LMENU`, `VK_RMENU`: Alt on either side (Right Alt is `AltGr` on many layouts).
+const ALT_CODES: [i32; 3] = [0x12, 0xa4, 0xa5];
 /// The L key's virtual-key code (its ASCII letter).
 const VK_L: i32 = 0x4c;
 /// `VK_OEM_4`.
@@ -37,21 +38,25 @@ pub enum VirtualKey {
 }
 
 impl VirtualKey {
-    /// The Windows virtual-key code.
-    const fn code(self) -> i32 {
+    /// The Windows virtual-key codes that count as this key.
+    const fn codes(self) -> &'static [i32] {
         match self {
-            Self::Control => VK_CONTROL,
-            Self::Alt => VK_MENU,
-            Self::KeyL => VK_L,
-            Self::LeftBracket => VK_OEM_4,
-            Self::RightBracket => VK_OEM_6,
+            Self::Control => &CONTROL_CODES,
+            Self::Alt => &ALT_CODES,
+            Self::KeyL => &[VK_L],
+            Self::LeftBracket => &[VK_OEM_4],
+            Self::RightBracket => &[VK_OEM_6],
         }
     }
 }
 
-/// True while the key is held, anywhere on the system.
+/// True while the key (on either side, for Ctrl and Alt) is held, anywhere on the system.
 pub fn is_key_down(key: VirtualKey) -> bool {
+    key.codes().iter().any(|code| is_code_down(*code))
+}
+
+fn is_code_down(code: i32) -> bool {
     // SAFETY: GetAsyncKeyState takes a plain integer and has no memory preconditions.
-    let state = unsafe { GetAsyncKeyState(key.code()) };
+    let state = unsafe { GetAsyncKeyState(code) };
     state.cast_unsigned() & KEY_DOWN_MASK != 0
 }
