@@ -8,7 +8,16 @@ license.workspace = true
 repository.workspace = true
 publish.workspace = true
 
+[[bin]]
+name = "touch_dsu"
+path = "src/main.rs"
+
 [dependencies]
+dsu = { path = "../dsu" }
+num-traits = "0.2.19"
+openvr-sys = { path = "../openvr-sys" }
+serde_json = "1.0.154"
+win32-sys = { path = "../win32-sys" }
 
 # avi12-lint:begin rust-config (generated from rust-config-avi12; edit avi12-rust.local.toml)
 [lints.rust]
