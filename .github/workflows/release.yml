@@ -1,4 +1,4 @@
-# Builds the self-updating touch_dsu.exe for every published release and attaches it.
+# Builds the self-updating touch_dsu.exe and the setup guide for every published release and attaches them.
 # TOUCH_DSU_RELEASE=1 is what turns the updater on; local builds never set it.
 name: Release
 
@@ -33,7 +33,19 @@ jobs:
           TOUCH_DSU_RELEASE: "1"
         run: cargo build --release --locked -p bridge
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+
+      - name: Build the setup guide (winui-svelte, Node single executable)
+        shell: pwsh
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm --dir apps/guide build
+          Compress-Archive -Path target/guide/* -DestinationPath target/touch_dsu-setup-guide.zip
+
       - name: Attach to the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload ${{ github.event.release.tag_name }} target/release/touch_dsu.exe --clobber
+        run: gh release upload ${{ github.event.release.tag_name }} target/release/touch_dsu.exe target/touch_dsu-setup-guide.zip --clobber
