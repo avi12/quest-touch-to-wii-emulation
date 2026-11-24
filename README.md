@@ -5,19 +5,19 @@ Play Wii games in [Dolphin](https://dolphin-emu.org) on a normal monitor with **
 ```mermaid
 flowchart LR
     Q["Quest 2 + Touch controllers"] -- "Air Link / Link / Virtual Desktop" --> S["SteamVR<br/>(tracking only)"]
-    S -- OpenVR --> B["touch_dsu.ts<br/>pointer, roll, swing, buttons"]
+    S -- OpenVR --> B["touch_dsu<br/>pointer, roll, swing, buttons"]
     B -- "DSU / Cemuhook, UDP 26760" --> D1["Dolphin: Wii Remote 1<br/>right controller"]
-    B2["touch_dsu.ts (left)"] -- "UDP 26761" --> D2["Dolphin: Wii Remote 2<br/>left controller"]
+    B2["touch_dsu (left)"] -- "UDP 26761" --> D2["Dolphin: Wii Remote 2<br/>left controller"]
     S -- OpenVR --> B2
 ```
 
-The headset only _tracks_ the controllers. SteamVR hands their poses to a small Node.js (TypeScript) bridge, which pretends to be a DualShock-style pad with motion sensors (the DSU protocol Dolphin already understands). Nothing in Dolphin is patched.
+The headset only _tracks_ the controllers. SteamVR hands their poses to a small Rust bridge, which pretends to be a DualShock-style pad with motion sensors (the DSU protocol Dolphin already understands). Nothing in Dolphin is patched.
 
 ## Requirements
 
-- Windows, Node.js 26+, pnpm, Dolphin (tested on 2609b)
+- Windows, Rust (stable, via rustup), Dolphin (tested on 2609b)
 - A Quest (tested: Quest 2) connected to the PC through **Air Link, Link or Virtual Desktop**, with SteamVR running
-- `pnpm install` (OpenVR is loaded through `koffi`; no Python needed)
+- Nothing else: `openvr_api.dll` is loaded from the SteamVR install at run time, and the bridge has no third-party crates
 
 ## Quick start
 
@@ -74,17 +74,22 @@ In Dolphin, Controllers → Wii Remote 1 and 2 must be **Emulated Wii Remote**. 
 | Controllers vanish from SteamVR | They sleep when idle and need the headset cameras. Press a button; run `tools\keep_headset_awake.ps1` so the headset itself doesn't sleep.                    |
 | Pointer drifts / jitters        | The headset can't see the controller (position is frozen, only the gyro is working). Put the headset on a stand facing you, 1–2 m away, controllers in front. |
 | Emulator froze after a hotkey   | F10 is Dolphin's **Pause** (F9 = screenshot). Press F10 again. The bridge hotkeys use Ctrl+Alt for this reason.                                               |
-| Face buttons wrong              | Dolphin reads face buttons from the analog fields in Square, Cross, Circle, Triangle order; see `dsu_server.py`.                                              |
-| Nothing at all                  | `node tools\dsu_probe.ts` shows whether the bridge produces data; `node tools\list_devices.ts` shows what SteamVR sees.                                       |
+| Face buttons wrong              | Dolphin reads face buttons from the analog fields in Square, Cross, Circle, Triangle order; see `crates/dsu`.                                              |
+| Nothing at all                  | `cargo run -p tools --bin dsu_probe` shows whether the bridge produces data; `cargo run -p tools --bin list_devices` shows what SteamVR sees.                                       |
 
 ## Layout
 
 ```
-touch_dsu.ts        the bridge: poses -> pointer, roll, swings, buttons -> DSU pad
-dsu_server.ts       the DSU (Cemuhook) server, with Dolphin's packet quirks
+crates/bridge       the bridge (binary touch_dsu): poses -> pointer, roll, swings, buttons -> DSU pad
+crates/dsu          the DSU (Cemuhook) server, with Dolphin's packet quirks
+crates/openvr-sys   SteamVR's openvr_api.dll, loaded at run time (unsafe FFI lives only here and in win32-sys)
+crates/win32-sys    key state, beep, timer resolution
+crates/geometry     Vec3 / Mat3, shared by every crate
+crates/numeric      the one checked float-to-integer conversion
+crates/tools        diagnostics: dsu_probe, list_devices, controller_tip_pose, calibrate_pointing_axis, telemetry_tail
 scripts/            start.ps1 / stop.ps1 (PID-based, never kills by name)
 config/             Dolphin config for Wii Remote 1 and 2
-tools/              diagnostics: dsu_probe, list_devices, controller_tip_pose, calibrate_pointing_axis, keep_headset_awake
+tools/              keep_headset_awake.ps1
 docs/how-it-works.md   the findings behind every design choice
 ```
 
@@ -97,7 +102,8 @@ docs/how-it-works.md   the findings behind every design choice
 
 ## Development
 
-- `pnpm start` runs one bridge; `pnpm check` type-checks (tsgo); `pnpm lint` / `pnpm lint:fix` run the avi12 lint (oxlint, oxfmt, naming rules in the youtube-time-manager style); `pnpm lint:all` adds types and fallow.
+- `cargo run --release -p bridge` runs one bridge; `cargo test --workspace` runs the tests.
+- `pnpm install` once, then `pnpm lint` / `pnpm lint:fix` run the avi12 lint as in pade: clippy (pedantic, no `as`, no unwrap), rustfmt, cargo-deny, cargo-machete and the ast-grep house rules. Lint levels are generated into each `Cargo.toml` by `avi12-lint rust-config`; exemptions live in `avi12-rust.local.toml`, each with a reason.
 - See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Support

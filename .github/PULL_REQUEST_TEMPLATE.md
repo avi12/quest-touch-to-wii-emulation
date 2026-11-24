@@ -2,6 +2,6 @@
 
 ## How I verified it
 
-- [ ] `pnpm lint:all` passes
-- [ ] Tried it in Dolphin with a real controller (or `node tools/dsu_probe.ts`)
+- [ ] `pnpm lint` and `cargo test --workspace` pass
+- [ ] Tried it in Dolphin with a real controller (or `cargo run -p tools --bin dsu_probe`)
 - [ ] Docs updated if behaviour changed (README controls table, `docs/how-it-works.md`)

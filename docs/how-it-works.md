@@ -33,8 +33,8 @@ Clients are dropped after 5 s without a pad request, so a restarted bridge is pi
 
 The Touch pose frame is not the Wiimote's (x right, y forward, z up). The bridge builds the Wiimote axes from a **pointing axis** `F0`
 in the controller frame (default: the controller's −z, picked live with the selector for a Wiimote-style grip) and an "up" taken from gravity at the last recenter.
-Candidates (SteamVR's own `tip` ray is (0, −0.61, −0.79) on a Quest 2, `tools/controller_tip_pose.ts`) can be cycled live with Ctrl+Alt+[ ].
-How _you_ hold the controller decides which axis feels right; `tools/calibrate_pointing_axis.ts` measures a twist axis, but a twist and the aim differ for some grips.
+Candidates (SteamVR's own `tip` ray is (0, −0.61, −0.79) on a Quest 2, `controller_tip_pose` (crates/tools)) can be cycled live with Ctrl+Alt+[ ].
+How _you_ hold the controller decides which axis feels right; `calibrate_pointing_axis` (crates/tools) measures a twist axis, but a twist and the aim differ for some grips.
 
 ## 4. The pointer
 

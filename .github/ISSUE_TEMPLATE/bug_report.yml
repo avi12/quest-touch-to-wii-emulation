@@ -33,8 +33,8 @@ body:
   - type: input
     id: versions
     attributes:
-      label: Dolphin and Node.js versions
-      placeholder: E.g. Dolphin 2609b, Node 26.0.0
+      label: Dolphin and Rust versions
+      placeholder: E.g. Dolphin 2609b, rustc 1.100.0
     validations:
       required: true
   - type: checkboxes
