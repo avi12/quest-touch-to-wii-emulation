@@ -25,7 +25,7 @@ Once:
 
 1. **Close Dolphin**, then copy the files in `config/` into `%APPDATA%\Dolphin Emulator\Config\` (merge `WiimoteNew.ini`; see [Dolphin setup](#dolphin-setup)).
 2. Put your Dolphin and game paths in `.play.json` in the repo root (gitignored):
-   `{ "dolphin": "C:\…\Dolphin.exe", "disc": "C:\…\Wii Sports.rvz" }`
+   `{ "dolphin": "C:\\…\\Dolphin.exe", "disc": "C:\\…\\Wii Sports.rvz" }` (JSON, so backslashes are doubled)
 
 Every time:
 
