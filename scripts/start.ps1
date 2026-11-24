@@ -4,7 +4,7 @@
   Builds the Rust bridge once (cargo build --release -p bridge), then runs target\release\touch_dsu.exe for each hand.
   Records the PIDs it starts in .bridge.pids so stop.ps1 only ever stops its own processes.
   SteamVR must already be running with the headset connected.
-  -Telemetry streams each bridge's movement, pointer and sensors to telemetry-<hand>.jsonl (read it with tools/telemetry_tail.ts).
+  -Telemetry streams each bridge's movement, pointer and sensors to telemetry-<hand>.jsonl (read it with cargo run -p tools --bin telemetry_tail).
 #>
 param([switch]$Telemetry)
 $root = Split-Path $PSScriptRoot -Parent
