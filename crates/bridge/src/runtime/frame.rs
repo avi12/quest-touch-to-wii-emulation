@@ -15,7 +15,7 @@ use crate::runtime::hands::Output;
 use crate::runtime::{Bridge, STEP};
 use crate::session::TelemetrySample;
 
-/// How long Dolphin's IMU "Recenter" (the PS button) is held after a recenter.
+/// How long Dolphin's IMU "Recenter" (the PS button) is held after a recenter or a swing frame.
 const RECENTER_HOLD: Duration = Duration::from_millis(300);
 /// The pad repeated while the controller is lost carries no rotation.
 const NO_GYRO: Vec3 = [0.0; 3];

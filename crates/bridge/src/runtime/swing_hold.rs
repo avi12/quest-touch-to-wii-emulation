@@ -1,4 +1,5 @@
-//! Swings: the pointer holds still through them, and Dolphin's motion tracking is recentred after.
+//! Swings: the pointer holds still through them, and Dolphin's motion tracking is held recentred
+//! through them and recentred again once they settle.
 
 use std::time::{Duration, Instant};
 
@@ -22,14 +23,19 @@ pub(crate) struct SwingHold {
 }
 
 impl SwingHold {
-    /// A hard swing leaves Dolphin's motion tracking skewed. Feed it every frame's accel; true
-    /// once the controller has settled after a swing, when Dolphin should be recentred.
+    /// Whether Dolphin's motion tracking should be recentred now. Feed it every frame's accel.
+    ///
+    /// Dolphin tilts its motion-pointer orientation toward the accelerometer's direction every
+    /// frame (`EmulateIMUCursor`'s complementary filter, `Dynamics.cpp`). A fast sideways swing
+    /// points that direction far from gravity, which tips the cursor up or down; holding Recenter
+    /// through the swing cancels the tip as it builds. True on every swing frame, and once more
+    /// when the controller has settled after it.
     pub(crate) fn observe(&mut self, accel: Gravities, now: Instant) -> bool {
         let is_swinging = norm(accel.0) > SWING_ACCEL_G;
         if is_swinging {
             self.last_swing_at = Some(now);
             self.pointer_frozen_until = Some(now + POINTER_HOLD);
-            return false;
+            return true;
         }
         let is_settled = self
             .last_swing_at
@@ -97,7 +103,7 @@ mod tests {
         let start = Instant::now();
         let mut swing = SwingHold::default();
         assert!(!swing.observe(STILL, start));
-        assert!(!swing.observe(SWING, start));
+        assert!(swing.observe(SWING, start));
         assert!(!swing.observe(STILL, after(start, JUST_UNSETTLED_MS)));
         assert!(swing.observe(STILL, after(start, SETTLED_MS)));
         assert!(!swing.observe(STILL, after(start, LONG_AFTER_MS)));
