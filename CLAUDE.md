@@ -33,7 +33,7 @@ Bridge that lets Meta Quest Touch controllers act as Dolphin Wii Remotes. Read `
 
 ## Conventions
 
-- Lint = `pnpm lint` (`pnpm lint:fix` fixes): avi12-lint as in pade — clippy pedantic (no `as`, unwrap, indexing, magic numbers), rustfmt, cargo-deny, cargo-machete, ast-grep house rules. Never `#[allow]`; lint levels are generated into each `Cargo.toml` by `avi12-lint rust-config`, exemptions go in `avi12-rust.local.toml` with a reason.
+- Lint = `pnpm lint` (`pnpm lint:fix` fixes): avi12-lint as in pade - clippy pedantic (no `as`, unwrap, indexing, magic numbers), rustfmt, cargo-deny, cargo-machete, ast-grep house rules. Never `#[allow]`; lint levels are generated into each `Cargo.toml` by `avi12-lint rust-config`, exemptions go in `avi12-rust.local.toml` with a reason.
 - Strong types: newtypes/enums for indices, units and roles; reuse `geometry`, `numeric` and existing helpers instead of re-deriving.
 
 - `main` is the only long-lived branch.

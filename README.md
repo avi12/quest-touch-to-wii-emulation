@@ -74,8 +74,8 @@ In Dolphin, Controllers → Wii Remote 1 and 2 must be **Emulated Wii Remote**. 
 | Controllers vanish from SteamVR | They sleep when idle and need the headset cameras. Press a button; run `tools\keep_headset_awake.ps1` so the headset itself doesn't sleep.                    |
 | Pointer drifts / jitters        | The headset can't see the controller (position is frozen, only the gyro is working). Put the headset on a stand facing you, 1–2 m away, controllers in front. |
 | Emulator froze after a hotkey   | F10 is Dolphin's **Pause** (F9 = screenshot). Press F10 again. The bridge hotkeys use Ctrl+Alt for this reason.                                               |
-| Face buttons wrong              | Dolphin reads face buttons from the analog fields in Square, Cross, Circle, Triangle order; see `crates/dsu`.                                              |
-| Nothing at all                  | `cargo run -p tools --bin dsu_probe` shows whether the bridge produces data; `cargo run -p tools --bin list_devices` shows what SteamVR sees.                                       |
+| Face buttons wrong              | Dolphin reads face buttons from the analog fields in Square, Cross, Circle, Triangle order; see `crates/dsu`.                                                 |
+| Nothing at all                  | `cargo run -p tools --bin dsu_probe` shows whether the bridge produces data; `cargo run -p tools --bin list_devices` shows what SteamVR sees.                 |
 
 ## Layout
 

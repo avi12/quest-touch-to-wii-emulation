@@ -14,13 +14,9 @@
     "lint:rust": "cargo clippy --workspace --all-targets -- -D warnings && cargo fmt --all --check"
   },
   "devDependencies": {
-    "@ast-grep/cli": "^0.51.3",
-    "ast-grep-rules-avi12": "github:avi12/lint-config#v0.11.0&path:/packages/ast-grep-rules",
     "avi12-lint": "github:avi12/lint-config#v0.11.0&path:/packages/avi12-lint",
     "oxfmt": "^0.78.0",
     "oxfmt-config-avi12": "github:avi12/lint-config#v0.11.0&path:/packages/oxfmt-config",
-    "oxlint": "1.90.0",
-    "oxlint-config-avi12": "github:avi12/lint-config#v0.11.0&path:/packages/oxlint-config",
     "rust-config-avi12": "github:avi12/lint-config#v0.11.0&path:/packages/rust-config"
   },
   "devEngines": {
