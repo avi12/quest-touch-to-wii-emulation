@@ -4,13 +4,15 @@ use std::io::{self, ErrorKind};
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
 use std::time::Instant;
 
-use crate::clients::ClientTable;
-use crate::frame::{Magic, frame_dsu};
-use crate::pad::{PadState, pad_body};
-use crate::protocol::{
+mod clients;
+
+use crate::wire::frame::{Magic, frame_dsu};
+use crate::wire::pad::{PadState, pad_body};
+use crate::wire::protocol::{
     CLIENT_TIMEOUT, Event, PROTOCOL_VERSION, RECENTER_HOLD, SERVER_ID_BASE, SLOT_INFO,
     parse_request,
 };
+use clients::ClientTable;
 
 /// Large enough for any request a DSU client sends.
 const RECV_BUFFER_BYTES: usize = 2048;
@@ -105,5 +107,4 @@ fn pad_packet(source_id: u32, body: &[u8]) -> io::Result<Vec<u8>> {
 }
 
 #[cfg(test)]
-#[path = "server_tests.rs"]
 mod tests;

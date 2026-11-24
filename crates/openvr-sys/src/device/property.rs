@@ -1,6 +1,6 @@
 //! String properties of tracked devices, such as the render-model name.
 
-use crate::table::{SystemTable, len_u32};
+use crate::ffi::table::{SystemTable, len_u32};
 
 const PROPERTY_BUFFER_BYTES: usize = 256;
 

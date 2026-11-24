@@ -1,7 +1,7 @@
 //! Tracked-device poses: one snapshot of every device, decoded on demand.
 
-use crate::table::{RawPose, SystemTable, len_u32};
-use crate::transform::{ComponentTransform, Mat3, Vec3, to_vec3};
+use crate::device::transform::{ComponentTransform, Mat3, Vec3, to_vec3};
+use crate::ffi::table::{RawPose, SystemTable, len_u32};
 
 /// How many tracked devices `OpenVR` reports (`k_unMaxTrackedDeviceCount`).
 pub const MAX_DEVICES: usize = 64;

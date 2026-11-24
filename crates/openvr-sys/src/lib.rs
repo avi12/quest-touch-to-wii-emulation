@@ -3,19 +3,14 @@
 //! `OpenVR` is reached through its C "flat" API: the DLL is loaded at runtime and each interface
 //! is called through its function table, so no `SteamVR` SDK is needed to build.
 
-mod controller;
+mod device;
 mod error;
-mod loader;
+mod ffi;
 mod openvr;
-mod pose;
-mod property;
-mod render_model;
-mod table;
-mod transform;
 
-pub use controller::{Button, ControllerState};
+pub use device::controller::{Button, ControllerState};
+pub use device::pose::{DevicePose, MAX_DEVICES, Poses};
+pub use device::property::{PROPERTY, Properties, StringProperty};
+pub use device::transform::{ComponentTransform, Mat3, Vec3};
 pub use error::OpenVrError;
 pub use openvr::{Hand, OpenVr};
-pub use pose::{DevicePose, MAX_DEVICES, Poses};
-pub use property::{PROPERTY, Properties, StringProperty};
-pub use transform::{ComponentTransform, Mat3, Vec3};

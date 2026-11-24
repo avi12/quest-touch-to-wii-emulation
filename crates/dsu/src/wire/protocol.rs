@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use crate::frame::HEADER_BYTES;
+use crate::wire::frame::HEADER_BYTES;
 
 /// Protocol version written in every header and in the version reply.
 pub(crate) const PROTOCOL_VERSION: u16 = 1001;
@@ -61,7 +61,7 @@ pub(crate) fn parse_request(data: &[u8]) -> Option<Event> {
 #[cfg(test)]
 mod tests {
     use super::{Event, parse_request};
-    use crate::frame::{Magic, frame_dsu};
+    use crate::wire::frame::{Magic, frame_dsu};
 
     #[test]
     fn parses_known_client_requests() {

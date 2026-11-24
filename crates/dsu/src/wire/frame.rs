@@ -3,7 +3,7 @@
 use std::fmt;
 use std::ops::Range;
 
-use crate::protocol::{Event, PROTOCOL_VERSION};
+use crate::wire::protocol::{Event, PROTOCOL_VERSION};
 
 /// Header bytes including the event id.
 pub(crate) const HEADER_BYTES: usize = 20;
@@ -81,7 +81,7 @@ pub(crate) fn hex(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::{FrameError, Magic, frame_dsu, hex};
-    use crate::protocol::{Event, SERVER_ID_BASE};
+    use crate::wire::protocol::{Event, SERVER_ID_BASE};
 
     /// Golden bytes from `frameDsu` in `src/dsu_server.ts`.
     #[test]

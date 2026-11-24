@@ -2,8 +2,8 @@
 
 use num_traits::ToPrimitive;
 
-use crate::buttons::{Buttons1, Buttons2};
-use crate::protocol::SLOT_INFO;
+use crate::wire::buttons::{Buttons1, Buttons2};
+use crate::wire::protocol::SLOT_INFO;
 
 const ANALOG_PRESSED: u8 = 255;
 const STICK_MAX: f64 = 255.0;

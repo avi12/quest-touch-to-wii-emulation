@@ -1,6 +1,6 @@
 //! Controller state: sticks, triggers and buttons.
 
-use crate::table::{RawControllerState, SystemTable, len_u32};
+use crate::ffi::table::{RawControllerState, SystemTable, len_u32};
 
 /// A button of a Touch controller.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

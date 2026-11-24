@@ -2,9 +2,9 @@
 
 use std::ffi::CString;
 
-use crate::controller::read_raw;
-use crate::table::{RawComponentState, RawControllerMode, RenderModelsTable, SystemTable};
-use crate::transform::ComponentTransform;
+use crate::device::controller::read_raw;
+use crate::device::transform::ComponentTransform;
+use crate::ffi::table::{RawComponentState, RawControllerMode, RenderModelsTable, SystemTable};
 
 /// Which device, model and component to look up.
 pub(crate) struct ComponentQuery<'name> {

@@ -3,7 +3,7 @@
 use std::ffi::{c_char, c_void};
 use std::ptr::NonNull;
 
-use crate::transform::Matrix34;
+use crate::device::transform::Matrix34;
 
 /// `TrackedDevicePose_t`.
 #[repr(C)]

@@ -2,14 +2,14 @@
 
 use std::ffi::CStr;
 
-use crate::controller::{ControllerState, read_raw};
+use crate::device::controller::{ControllerState, read_raw};
+use crate::device::pose::Poses;
+use crate::device::property::{self, StringProperty};
+use crate::device::render_model::{ComponentQuery, component_transform};
+use crate::device::transform::ComponentTransform;
 use crate::error::OpenVrError;
-use crate::loader::{Runtime, interface_error};
-use crate::pose::Poses;
-use crate::property::{self, StringProperty};
-use crate::render_model::{ComponentQuery, component_transform};
-use crate::table::{RenderModelsTable, SystemTable};
-use crate::transform::ComponentTransform;
+use crate::ffi::loader::{Runtime, interface_error};
+use crate::ffi::table::{RenderModelsTable, SystemTable};
 
 const SYSTEM_INTERFACE: &CStr = c"FnTable:IVRSystem_023";
 const RENDER_MODELS_INTERFACE: &CStr = c"FnTable:IVRRenderModels_006";

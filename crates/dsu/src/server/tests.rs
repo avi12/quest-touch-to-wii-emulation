@@ -2,9 +2,9 @@ use std::net::{Ipv4Addr, UdpSocket};
 use std::time::{Duration, Instant};
 
 use super::{Server, pad_packet};
-use crate::frame::{Magic, frame_dsu, hex};
-use crate::pad::{pad_body, sample_pad};
-use crate::protocol::{Event, SERVER_ID_BASE};
+use crate::wire::frame::{Magic, frame_dsu, hex};
+use crate::wire::pad::{pad_body, sample_pad};
+use crate::wire::protocol::{Event, SERVER_ID_BASE};
 
 /// Golden datagrams captured from `Server.sendPad` in `src/dsu_server.ts` on port 26799.
 const PAD_RECENTERING: &str = "44535553e9035400607c062c8d291270020010000002020100000000000105010100000011a8010080ff0040000000ff00ff00ffff000a14000000000000000000000000cb04fb711f010000cdcccc3d000080bf0000803e00004841333353c00000807f";
