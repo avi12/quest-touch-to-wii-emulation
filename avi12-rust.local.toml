@@ -15,3 +15,8 @@ missing_docs = "allow"
 [member.tools.rust]
 # Command-line diagnostics: no public API
 missing_docs = "allow"
+
+[member.numeric.clippy]
+# The workspace's single checked float-to-integer conversion: the value is range-checked right before the cast
+as_conversions = "allow"
+cast_possible_truncation = "allow"

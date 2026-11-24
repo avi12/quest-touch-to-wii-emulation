@@ -74,6 +74,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "numeric"
+version = "1.0.0"
+
+[[package]]
 name = "openvr-sys"
 version = "1.0.0"
 dependencies = [
