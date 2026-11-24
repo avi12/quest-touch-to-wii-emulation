@@ -1,6 +1,16 @@
 //! Controller state: sticks, triggers and buttons.
 
+use crate::device::index::DeviceIndex;
 use crate::ffi::table::{RawControllerState, SystemTable, len_u32};
+
+/// `k_EButton_System`.
+const SYSTEM_BIT: u32 = 0;
+/// `k_EButton_ApplicationMenu`.
+const APPLICATION_MENU_BIT: u32 = 1;
+/// `k_EButton_A`.
+const A_BIT: u32 = 7;
+/// `k_EButton_Axis0` (`k_EButton_SteamVR_Touchpad`).
+const AXIS0_BIT: u32 = 32;
 
 /// A button of a Touch controller.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -19,10 +29,10 @@ impl Button {
     /// The `EVRButtonId`: the button's bit in `ulButtonPressed`.
     fn bit(self) -> u32 {
         match self {
-            Self::System => 0,
-            Self::Secondary => 1,
-            Self::Primary => 7,
-            Self::Click => 32,
+            Self::System => SYSTEM_BIT,
+            Self::Secondary => APPLICATION_MENU_BIT,
+            Self::Primary => A_BIT,
+            Self::Click => AXIS0_BIT,
         }
     }
 }
@@ -60,31 +70,35 @@ impl From<&RawControllerState> for ControllerState {
 }
 
 /// The raw state of device `index`, or `None` when `SteamVR` has none for it.
-pub(crate) fn read_raw(system: &SystemTable, index: u32) -> Option<RawControllerState> {
+pub(crate) fn read_raw(system: &SystemTable, index: DeviceIndex) -> Option<RawControllerState> {
     let mut raw = RawControllerState::default();
     let size = len_u32(size_of::<RawControllerState>());
     // SAFETY: `raw` is a valid `VRControllerState_t` of the size passed.
-    let has_state = unsafe { (system.controller_state)(index, &raw mut raw, size) };
+    let has_state = unsafe { (system.controller_state)(index.get(), &raw mut raw, size) };
     has_state.then_some(raw)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::device::controller::{Button, ControllerState};
+    use crate::ffi::table::RawControllerState;
+
+    /// Stick (0.5, -0.25), trigger 0.75, grip fully closed.
+    const AXES: [[f32; 2]; 5] = [
+        [0.5, -0.25],
+        [0.75, 0.0],
+        [1.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+    ];
 
     #[test]
     fn decodes_axes_and_buttons() {
         let raw = RawControllerState {
-            packet_num: 1,
+            packet_number: 1,
             button_pressed: (1 << Button::Primary.bit()) | (1 << Button::Click.bit()),
             button_touched: 0,
-            axes: [
-                [0.5, -0.25],
-                [0.75, 0.0],
-                [1.0, 0.0],
-                [0.0, 0.0],
-                [0.0, 0.0],
-            ],
+            axes: AXES,
         };
         let state = ControllerState::from(&raw);
         assert_eq!(state.stick, [0.5, -0.25]);

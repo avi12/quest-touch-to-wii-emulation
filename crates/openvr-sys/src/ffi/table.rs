@@ -21,7 +21,7 @@ pub(crate) struct RawPose {
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 pub(crate) struct RawControllerState {
-    pub(crate) packet_num: u32,
+    pub(crate) packet_number: u32,
     pub(crate) button_pressed: u64,
     pub(crate) button_touched: u64,
     pub(crate) axes: [[f32; 2]; 5],
@@ -80,6 +80,17 @@ pub(crate) struct RenderModelsTable {
     pub(crate) component_state: GetComponentStateFn,
 }
 
+/// `IVRSystem_023` slots, in header order.
+const GET_POSES_SLOT: usize = 11;
+const INDEX_FOR_ROLE_SLOT: usize = 17;
+const ROLE_FOR_INDEX_SLOT: usize = 18;
+const DEVICE_CLASS_SLOT: usize = 19;
+const IS_CONNECTED_SLOT: usize = 20;
+const STRING_PROPERTY_SLOT: usize = 27;
+const CONTROLLER_STATE_SLOT: usize = 34;
+/// `IVRRenderModels_006` slot of `GetComponentState`.
+const COMPONENT_STATE_SLOT: usize = 10;
+
 /// Reads one slot of a function table.
 ///
 /// # Safety
@@ -99,13 +110,13 @@ impl SystemTable {
         // SAFETY: IVRSystem_023 has more than 34 slots, each typed as in openvr_capi.h.
         unsafe {
             Some(Self {
-                get_poses: slot::<Option<GetPosesFn>>(table, 11)?,
-                index_for_role: slot::<Option<IndexForRoleFn>>(table, 17)?,
-                role_for_index: slot::<Option<DeviceToI32Fn>>(table, 18)?,
-                device_class: slot::<Option<DeviceToI32Fn>>(table, 19)?,
-                is_connected: slot::<Option<IsConnectedFn>>(table, 20)?,
-                string_property: slot::<Option<GetStringFn>>(table, 27)?,
-                controller_state: slot::<Option<GetStateFn>>(table, 34)?,
+                get_poses: slot::<Option<GetPosesFn>>(table, GET_POSES_SLOT)?,
+                index_for_role: slot::<Option<IndexForRoleFn>>(table, INDEX_FOR_ROLE_SLOT)?,
+                role_for_index: slot::<Option<DeviceToI32Fn>>(table, ROLE_FOR_INDEX_SLOT)?,
+                device_class: slot::<Option<DeviceToI32Fn>>(table, DEVICE_CLASS_SLOT)?,
+                is_connected: slot::<Option<IsConnectedFn>>(table, IS_CONNECTED_SLOT)?,
+                string_property: slot::<Option<GetStringFn>>(table, STRING_PROPERTY_SLOT)?,
+                controller_state: slot::<Option<GetStateFn>>(table, CONTROLLER_STATE_SLOT)?,
             })
         }
     }
@@ -118,7 +129,8 @@ impl RenderModelsTable {
     /// `table` must be the `FnTable:IVRRenderModels_006` pointer from `VR_GetGenericInterface`.
     pub(crate) unsafe fn load(table: NonNull<c_void>) -> Option<Self> {
         // SAFETY: IVRRenderModels_006 has more than 10 slots, each typed as in openvr_capi.h.
-        let component_state = unsafe { slot::<Option<GetComponentStateFn>>(table, 10)? };
+        let component_state =
+            unsafe { slot::<Option<GetComponentStateFn>>(table, COMPONENT_STATE_SLOT)? };
         Some(Self { component_state })
     }
 }

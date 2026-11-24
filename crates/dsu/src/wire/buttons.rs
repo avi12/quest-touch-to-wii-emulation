@@ -82,7 +82,7 @@ button_set! {
 
 #[cfg(test)]
 mod tests {
-    use super::{Buttons1, Buttons2};
+    use crate::wire::buttons::{Buttons1, Buttons2};
 
     #[test]
     fn bits_combine_and_test() {

@@ -1,8 +1,8 @@
-//! DSU protocol constants and request parsing.
+//! DSU protocol constants, message types and request parsing.
 
 use std::time::Duration;
 
-use crate::wire::frame::HEADER_BYTES;
+use crate::wire::frame::{Magic, SourceId, event_of};
 
 /// Protocol version written in every header and in the version reply.
 pub(crate) const PROTOCOL_VERSION: u16 = 1001;
@@ -14,6 +14,13 @@ pub(crate) const CLIENT_TIMEOUT: Duration = Duration::from_secs(5);
 pub(crate) const RECENTER_HOLD: Duration = Duration::from_secs(1);
 /// Slot 0, connected, model "full gyro", connection USB, zero MAC, battery full.
 pub(crate) const SLOT_INFO: [u8; 11] = [0, 2, 2, 1, 0, 0, 0, 0, 0, 1, 5];
+
+/// Wire id of [`Event::Version`].
+const VERSION_CODE: u32 = 0x10_0000;
+/// Wire id of [`Event::Ports`].
+const PORTS_CODE: u32 = 0x10_0001;
+/// Wire id of [`Event::Pad`].
+const PAD_CODE: u32 = 0x10_0002;
 
 /// DSU message types (the event id after the 16-byte header).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -30,55 +37,63 @@ impl Event {
     /// The event id on the wire.
     pub const fn code(self) -> u32 {
         match self {
-            Self::Version => 0x10_0000,
-            Self::Ports => 0x10_0001,
-            Self::Pad => 0x10_0002,
+            Self::Version => VERSION_CODE,
+            Self::Ports => PORTS_CODE,
+            Self::Pad => PAD_CODE,
         }
     }
 
     /// The event for a wire id, if known.
     pub const fn from_code(code: u32) -> Option<Self> {
         match code {
-            0x10_0000 => Some(Self::Version),
-            0x10_0001 => Some(Self::Ports),
-            0x10_0002 => Some(Self::Pad),
+            VERSION_CODE => Some(Self::Version),
+            PORTS_CODE => Some(Self::Ports),
+            PAD_CODE => Some(Self::Pad),
             _ => None,
         }
     }
 }
 
+impl SourceId {
+    /// The id of the server bound to `port`, unique per bridge instance.
+    pub(crate) fn server(port: u16) -> Self {
+        Self(SERVER_ID_BASE.wrapping_add(u32::from(port)))
+    }
+}
+
 /// The event a client request asks for: it needs a full header, the `DSUC` magic and a known id.
 pub(crate) fn parse_request(data: &[u8]) -> Option<Event> {
-    let (header, _body) = data.split_first_chunk::<HEADER_BYTES>()?;
-    let (magic, rest) = header.split_first_chunk::<4>()?;
-    if magic != b"DSUC" {
+    let Some(Magic::Client) = Magic::of_packet(data) else {
         return None;
-    }
-    let (_fields, event) = rest.split_last_chunk::<4>()?;
-    Event::from_code(u32::from_le_bytes(*event))
+    };
+    event_of(data)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Event, parse_request};
-    use crate::wire::frame::{Magic, frame_dsu};
+    use crate::wire::frame::{EVENT_RANGE, HEADER_BYTES, Magic, SourceId, frame_dsu};
+    use crate::wire::protocol::{Event, parse_request};
+
+    const CLIENT: SourceId = SourceId(42);
+    const REQUEST_BODY: [u8; 4] = [0; 4];
+    const UNKNOWN_EVENT: u8 = 9;
 
     #[test]
     fn parses_known_client_requests() {
         for event in [Event::Version, Event::Ports, Event::Pad] {
-            let packet = frame_dsu(Magic::Client, 42, event, &[0; 4]).unwrap();
+            let packet = frame_dsu(Magic::Client, CLIENT, event, &REQUEST_BODY).unwrap();
             assert_eq!(parse_request(&packet), Some(event));
         }
     }
 
     #[test]
     fn rejects_short_foreign_or_unknown_packets() {
-        let pad = frame_dsu(Magic::Client, 42, Event::Pad, &[]).unwrap();
-        assert_eq!(parse_request(&pad[..19]), None);
-        let server = frame_dsu(Magic::Server, 42, Event::Pad, &[]).unwrap();
+        let pad = frame_dsu(Magic::Client, CLIENT, Event::Pad, &[]).unwrap();
+        assert_eq!(parse_request(&pad[..HEADER_BYTES - 1]), None);
+        let server = frame_dsu(Magic::Server, CLIENT, Event::Pad, &[]).unwrap();
         assert_eq!(parse_request(&server), None);
         let mut unknown = pad;
-        unknown[16] = 9;
+        unknown[EVENT_RANGE.start] = UNKNOWN_EVENT;
         assert_eq!(parse_request(&unknown), None);
     }
 }

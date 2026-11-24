@@ -4,9 +4,8 @@ use std::ffi::{CStr, c_char, c_void};
 use std::path::{Path, PathBuf};
 use std::ptr::{self, NonNull};
 
-use libloading::Library;
-
 use crate::error::OpenVrError;
+use crate::ffi::library::Library;
 
 const STEAM_DIRS: [&str; 2] = ["C:/Program Files (x86)/Steam", "C:/Program Files/Steam"];
 const DLL_SUBPATH: &str = "steamapps/common/SteamVR/bin/win64/openvr_api.dll";
@@ -38,10 +37,9 @@ fn find_dll() -> Option<PathBuf> {
 /// # Safety
 /// `F` must be the entry point's exact function-pointer type, and the copy must not be called
 /// after `library` is unloaded.
-unsafe fn entry<F: Copy>(library: &Library, name: &CStr) -> Result<F, OpenVrError> {
-    // SAFETY: the caller guarantees `F` matches the symbol.
-    let symbol = unsafe { library.get::<F>(name.to_bytes_with_nul())? };
-    Ok(*symbol)
+unsafe fn entry<F: Copy>(library: &Library, name: &'static CStr) -> Result<F, OpenVrError> {
+    // SAFETY: the caller guarantees `F` matches the symbol and outlives no unload.
+    unsafe { library.entry::<F>(name) }.ok_or(OpenVrError::MissingEntry(name))
 }
 
 fn error_symbol(describe: ErrorSymbolFn, code: i32) -> String {
@@ -61,8 +59,7 @@ impl Runtime {
     /// Loads the DLL and initialises `OpenVR` as a background application.
     pub(crate) fn init() -> Result<Self, OpenVrError> {
         let path = find_dll().ok_or(OpenVrError::DllNotFound)?;
-        // SAFETY: loading openvr_api.dll runs no initialisation with preconditions of ours.
-        let library = unsafe { Library::new(path)? };
+        let library = Library::load(&path).map_err(OpenVrError::Load)?;
         // SAFETY: the types match openvr_capi.h, and `Runtime` keeps `library` loaded for as
         // long as it holds the copies.
         let (init, get_interface, describe, shutdown) = unsafe {
@@ -76,7 +73,8 @@ impl Runtime {
         let mut code = 0;
         // SAFETY: `code` is a valid out-pointer; null startup info is allowed.
         unsafe { init(&raw mut code, APPLICATION_BACKGROUND, ptr::null()) };
-        if code != 0 {
+        let is_initialised = code == 0;
+        if !is_initialised {
             let symbol = error_symbol(describe, code);
             return Err(OpenVrError::Init { symbol, code });
         }
@@ -93,7 +91,12 @@ impl Runtime {
         let mut code = 0;
         // SAFETY: `name` is NUL-terminated and `code` is a valid out-pointer.
         let table = unsafe { (self.get_interface)(name.as_ptr(), &raw mut code) };
-        let found = if code == 0 { NonNull::new(table) } else { None };
+        let is_available = code == 0;
+        let found = if is_available {
+            NonNull::new(table)
+        } else {
+            None
+        };
         found.ok_or_else(|| interface_error(name, code))
     }
 }

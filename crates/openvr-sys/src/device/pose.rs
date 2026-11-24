@@ -1,20 +1,40 @@
 //! Tracked-device poses: one snapshot of every device, decoded on demand.
 
-use crate::device::transform::{ComponentTransform, Mat3, Vec3, to_vec3};
+use geometry::{Mat3, Vec3};
+
+use crate::device::code::c_enum;
+use crate::device::index::{DeviceIndex, MAX_DEVICES};
+use crate::device::transform::{ComponentTransform, to_vec3};
 use crate::ffi::table::{RawPose, SystemTable, len_u32};
 
-/// How many tracked devices `OpenVR` reports (`k_unMaxTrackedDeviceCount`).
-pub const MAX_DEVICES: usize = 64;
 /// `TrackingUniverseStanding`.
 const TRACKING_STANDING: i32 = 1;
+
+c_enum! {
+    /// `ETrackingResult`: how well `SteamVR` is tracking a device.
+    TrackingResult {
+        /// Not tracked yet.
+        Uninitialized = 1,
+        /// Calibrating.
+        CalibratingInProgress = 100,
+        /// Calibrating, out of the tracked space.
+        CalibratingOutOfRange = 101,
+        /// Tracked.
+        RunningOk = 200,
+        /// Out of the tracked space; the position may be frozen.
+        RunningOutOfRange = 201,
+        /// Only the rotation is tracked.
+        FallbackRotationOnly = 300,
+    }
+}
 
 /// One tracked device: validity, rotation (3x3 rows) and position, plus `SteamVR`'s velocities.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct DevicePose {
     /// `SteamVR` has a valid pose for the device.
-    pub valid: bool,
-    /// The raw `ETrackingResult`.
-    pub tracking_result: i32,
+    pub is_valid: bool,
+    /// How well the device is tracked; `None` for a value this binding does not know.
+    pub tracking: Option<TrackingResult>,
     /// Device-to-world rotation, row-major.
     pub rot: Mat3,
     /// Position in the standing universe, metres.
@@ -30,8 +50,8 @@ impl From<&RawPose> for DevicePose {
         let ComponentTransform { rot, origin } =
             ComponentTransform::from_matrix(&raw.device_to_absolute);
         Self {
-            valid: raw.valid != 0,
-            tracking_result: raw.tracking_result,
+            is_valid: raw.valid != 0,
+            tracking: TrackingResult::from_code(raw.tracking_result),
             rot,
             pos: origin,
             velocity: to_vec3(raw.velocity),
@@ -57,34 +77,39 @@ impl Poses {
         Self { raw }
     }
 
-    /// The pose of device `index`, or `None` past [`MAX_DEVICES`].
-    pub fn get(&self, index: u32) -> Option<DevicePose> {
-        let slot = usize::try_from(index).ok()?;
-        self.raw.get(slot).map(DevicePose::from)
+    /// The pose of device `index` (invalid when the slot is empty).
+    pub fn get(&self, index: DeviceIndex) -> DevicePose {
+        // A `DeviceIndex` is always below `MAX_DEVICES`, so the default is never used.
+        let raw = self.raw.get(index.slot()).copied().unwrap_or_default();
+        DevicePose::from(&raw)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::device::index::{DeviceIndex, MAX_DEVICES};
+    use crate::device::pose::{DevicePose, Poses, TrackingResult};
+    use crate::ffi::table::RawPose;
+
+    const RUNNING_OK: i32 = 200;
+    const RAW: RawPose = RawPose {
+        device_to_absolute: [
+            [1.0, 0.0, 0.0, 0.5],
+            [0.0, 1.0, 0.0, 1.5],
+            [0.0, 0.0, 1.0, -2.0],
+        ],
+        velocity: [0.25, 0.0, 0.0],
+        angular_velocity: [0.0, 0.0, 3.0],
+        tracking_result: RUNNING_OK,
+        valid: 1,
+        connected: 1,
+    };
 
     #[test]
     fn decodes_a_raw_pose() {
-        let raw = RawPose {
-            device_to_absolute: [
-                [1.0, 0.0, 0.0, 0.5],
-                [0.0, 1.0, 0.0, 1.5],
-                [0.0, 0.0, 1.0, -2.0],
-            ],
-            velocity: [0.25, 0.0, 0.0],
-            angular_velocity: [0.0, 0.0, 3.0],
-            tracking_result: 200,
-            valid: 1,
-            connected: 1,
-        };
-        let pose = DevicePose::from(&raw);
-        assert!(pose.valid);
-        assert_eq!(pose.tracking_result, 200);
+        let pose = DevicePose::from(&RAW);
+        assert!(pose.is_valid);
+        assert_eq!(pose.tracking, Some(TrackingResult::RunningOk));
         assert_eq!(
             pose.rot,
             [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
@@ -95,11 +120,10 @@ mod tests {
     }
 
     #[test]
-    fn out_of_range_index_is_none() {
+    fn every_index_reads_a_slot() {
         let poses = Poses {
-            raw: [RawPose::default(); MAX_DEVICES],
+            raw: [RAW; MAX_DEVICES],
         };
-        assert!(poses.get(63).is_some());
-        assert!(poses.get(64).is_none());
+        assert!(DeviceIndex::all().all(|index| poses.get(index).is_valid));
     }
 }

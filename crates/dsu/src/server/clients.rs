@@ -42,23 +42,26 @@ mod tests {
     use std::net::SocketAddr;
     use std::time::{Duration, Instant};
 
-    use super::ClientTable;
+    use crate::server::clients::ClientTable;
+
+    const TIMEOUT: Duration = Duration::from_secs(5);
+    const SECOND_ASKS_AT: Duration = Duration::from_secs(3);
+    const JUST_PAST_TIMEOUT: Duration = Duration::from_millis(5001);
+    const SECOND_ASKS_AGAIN_AT: Duration = Duration::from_secs(9);
+    const LAST_CHECK_AT: Duration = Duration::from_secs(10);
 
     #[test]
     fn drops_clients_after_timeout() {
         let start = Instant::now();
         let first: SocketAddr = "127.0.0.1:1000".parse().unwrap();
         let second: SocketAddr = "127.0.0.1:2000".parse().unwrap();
-        let mut table = ClientTable::new(Duration::from_secs(5));
+        let mut table = ClientTable::new(TIMEOUT);
         table.touch(first, start);
-        table.touch(second, start + Duration::from_secs(3));
-        assert_eq!(table.live(start + Duration::from_secs(5)).len(), 2);
-        assert_eq!(
-            table.live(start + Duration::from_millis(5001)),
-            vec![second]
-        );
-        table.touch(second, start + Duration::from_secs(9));
-        assert_eq!(table.live(start + Duration::from_secs(10)), vec![second]);
+        table.touch(second, start + SECOND_ASKS_AT);
+        assert_eq!(table.live(start + TIMEOUT).len(), 2);
+        assert_eq!(table.live(start + JUST_PAST_TIMEOUT), vec![second]);
+        table.touch(second, start + SECOND_ASKS_AGAIN_AT);
+        assert_eq!(table.live(start + LAST_CHECK_AT), vec![second]);
         assert_eq!(table.len(), 1);
     }
 }

@@ -9,7 +9,7 @@ repository.workspace = true
 publish.workspace = true
 
 [dependencies]
-libloading = "0.9.1"
+geometry = { path = "../geometry" }
 
 # avi12-lint:begin rust-config (generated from rust-config-avi12; edit avi12-rust.local.toml)
 [lints.rust]

@@ -1,15 +1,19 @@
 //! Why `OpenVR` could not be brought up.
 
 use std::error::Error;
+use std::ffi::CStr;
 use std::fmt::{self, Display, Formatter};
+use std::io;
 
 /// A failure to load or initialise `OpenVR`.
 #[derive(Debug)]
 pub enum OpenVrError {
     /// `openvr_api.dll` is not under any known Steam directory.
     DllNotFound,
-    /// The DLL exists but could not be loaded, or lacks an entry point.
-    Load(libloading::Error),
+    /// The DLL exists but Windows could not load it.
+    Load(io::Error),
+    /// The DLL lacks an entry point the binding calls.
+    MissingEntry(&'static CStr),
     /// `VR_InitInternal2` failed (for example, `SteamVR` is not running).
     Init {
         /// `SteamVR`'s name for the error, such as `VRInitError_Init_NoServerForBackgroundApp`.
@@ -33,6 +37,13 @@ impl Display for OpenVrError {
                 write!(formatter, "openvr_api.dll not found; is SteamVR installed?")
             }
             Self::Load(error) => write!(formatter, "openvr_api.dll failed to load: {error}"),
+            Self::MissingEntry(name) => {
+                write!(
+                    formatter,
+                    "openvr_api.dll has no {}",
+                    name.to_string_lossy()
+                )
+            }
             Self::Init { symbol, code } => {
                 write!(formatter, "OpenVR init failed: {symbol} ({code})")
             }
@@ -47,13 +58,10 @@ impl Error for OpenVrError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::Load(error) => Some(error),
-            Self::DllNotFound | Self::Init { .. } | Self::Interface { .. } => None,
+            Self::DllNotFound
+            | Self::MissingEntry(_)
+            | Self::Init { .. }
+            | Self::Interface { .. } => None,
         }
-    }
-}
-
-impl From<libloading::Error> for OpenVrError {
-    fn from(error: libloading::Error) -> Self {
-        Self::Load(error)
     }
 }

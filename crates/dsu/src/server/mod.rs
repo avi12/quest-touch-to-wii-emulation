@@ -6,13 +6,12 @@ use std::time::Instant;
 
 mod clients;
 
-use crate::wire::frame::{Magic, frame_dsu};
+use crate::server::clients::ClientTable;
+use crate::wire::frame::{Magic, SourceId, frame_dsu};
 use crate::wire::pad::{PadState, pad_body};
 use crate::wire::protocol::{
-    CLIENT_TIMEOUT, Event, PROTOCOL_VERSION, RECENTER_HOLD, SERVER_ID_BASE, SLOT_INFO,
-    parse_request,
+    CLIENT_TIMEOUT, Event, PROTOCOL_VERSION, RECENTER_HOLD, SLOT_INFO, parse_request,
 };
-use clients::ClientTable;
 
 /// Large enough for any request a DSU client sends.
 const RECV_BUFFER_BYTES: usize = 2048;
@@ -21,7 +20,7 @@ const RECV_BUFFER_BYTES: usize = 2048;
 #[derive(Debug)]
 pub struct Server {
     socket: UdpSocket,
-    source_id: u32,
+    source: SourceId,
     clients: ClientTable,
     packet_number: u32,
     /// While in the future, the PS button is held (= Dolphin's IMU "Recenter").
@@ -35,7 +34,7 @@ impl Server {
         socket.set_nonblocking(true)?;
         Ok(Self {
             socket,
-            source_id: SERVER_ID_BASE.wrapping_add(u32::from(port)),
+            source: SourceId::server(port),
             clients: ClientTable::new(CLIENT_TIMEOUT),
             packet_number: 0,
             recenter_until: Instant::now() + RECENTER_HOLD,
@@ -74,7 +73,7 @@ impl Server {
         self.packet_number = self.packet_number.wrapping_add(1);
         let now = Instant::now();
         let packet = pad_packet(
-            self.source_id,
+            self.source,
             &pad_body(pad, self.packet_number, now < self.recenter_until),
         )?;
         for client in self.clients.live(now) {
@@ -97,13 +96,13 @@ impl Server {
             Event::Ports => [SLOT_INFO.as_slice(), &[0]].concat(),
         };
         let reply =
-            frame_dsu(Magic::Server, self.source_id, event, &body).map_err(io::Error::other)?;
+            frame_dsu(Magic::Server, self.source, event, &body).map_err(io::Error::other)?;
         self.socket.send_to(&reply, from).map(|_sent| ())
     }
 }
 
-fn pad_packet(source_id: u32, body: &[u8]) -> io::Result<Vec<u8>> {
-    frame_dsu(Magic::Server, source_id, Event::Pad, body).map_err(io::Error::other)
+fn pad_packet(source: SourceId, body: &[u8]) -> io::Result<Vec<u8>> {
+    frame_dsu(Magic::Server, source, Event::Pad, body).map_err(io::Error::other)
 }
 
 #[cfg(test)]

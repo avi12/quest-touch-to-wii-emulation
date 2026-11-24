@@ -3,9 +3,11 @@
 use std::ffi::CStr;
 
 use crate::device::controller::{ControllerState, read_raw};
+use crate::device::index::DeviceIndex;
+use crate::device::kind::{ControllerRole, DeviceClass, Hand};
 use crate::device::pose::Poses;
 use crate::device::property::{self, StringProperty};
-use crate::device::render_model::{ComponentQuery, component_transform};
+use crate::device::render_model::{Component, ComponentQuery, component_transform};
 use crate::device::transform::ComponentTransform;
 use crate::error::OpenVrError;
 use crate::ffi::loader::{Runtime, interface_error};
@@ -13,27 +15,6 @@ use crate::ffi::table::{RenderModelsTable, SystemTable};
 
 const SYSTEM_INTERFACE: &CStr = c"FnTable:IVRSystem_023";
 const RENDER_MODELS_INTERFACE: &CStr = c"FnTable:IVRRenderModels_006";
-/// `k_unTrackedDeviceIndexInvalid`.
-const INVALID_DEVICE_INDEX: u32 = 0xffff_ffff;
-
-/// Which hand a controller is held in.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum Hand {
-    /// `TrackedControllerRole_LeftHand`.
-    Left,
-    /// `TrackedControllerRole_RightHand`.
-    Right,
-}
-
-impl Hand {
-    /// The `ETrackedControllerRole` value.
-    fn role(self) -> i32 {
-        match self {
-            Self::Left => 1,
-            Self::Right => 2,
-        }
-    }
-}
 
 /// `OpenVR` initialised as a background application; shut down when dropped.
 pub struct OpenVr {
@@ -68,48 +49,50 @@ impl OpenVr {
     }
 
     /// The device index of the controller in `hand`, or `None` when there is none.
-    pub fn controller_index(&self, hand: Hand) -> Option<u32> {
+    pub fn controller_index(&self, hand: Hand) -> Option<DeviceIndex> {
         // SAFETY: the call takes a plain role value.
-        let index = unsafe { (self.system.index_for_role)(hand.role()) };
-        (index != INVALID_DEVICE_INDEX).then_some(index)
+        let raw = unsafe { (self.system.index_for_role)(hand.role().code()) };
+        // `k_unTrackedDeviceIndexInvalid` is out of range, so it maps to `None`.
+        DeviceIndex::new(raw)
     }
 
     /// Whether device `index` is connected.
-    pub fn is_connected(&self, index: u32) -> bool {
+    pub fn is_connected(&self, index: DeviceIndex) -> bool {
         // SAFETY: the call takes a plain device index.
-        unsafe { (self.system.is_connected)(index) }
+        unsafe { (self.system.is_connected)(index.get()) }
     }
 
-    /// The raw `ETrackedDeviceClass` of device `index` (0 = invalid, 2 = controller, ...).
-    pub fn device_class(&self, index: u32) -> i32 {
+    /// What kind of device sits at `index`; `None` for a class this binding does not know.
+    pub fn device_class(&self, index: DeviceIndex) -> Option<DeviceClass> {
         // SAFETY: the call takes a plain device index.
-        unsafe { (self.system.device_class)(index) }
+        let code = unsafe { (self.system.device_class)(index.get()) };
+        DeviceClass::from_code(code)
     }
 
-    /// 0 = none, 1 = left hand, 2 = right hand, as in `SteamVR`'s `ETrackedControllerRole`.
-    pub fn controller_role(&self, index: u32) -> i32 {
+    /// The controller role of device `index`; `None` for a role this binding does not know.
+    pub fn controller_role(&self, index: DeviceIndex) -> Option<ControllerRole> {
         // SAFETY: the call takes a plain device index.
-        unsafe { (self.system.role_for_index)(index) }
+        let code = unsafe { (self.system.role_for_index)(index.get()) };
+        ControllerRole::from_code(code)
     }
 
-    /// A string property of one device (for example `PROPERTY.render_model_name`), or "" when
-    /// it has none.
-    pub fn string_property(&self, index: u32, property: StringProperty) -> String {
+    /// A string property of one device, or "" when it has none.
+    pub fn string_property(&self, index: DeviceIndex, property: StringProperty) -> String {
         property::read(&self.system, index, property)
     }
 
     /// Sticks, triggers and buttons of one controller, or `None` when `SteamVR` has no state.
-    pub fn controller_state(&self, index: u32) -> Option<ControllerState> {
+    pub fn controller_state(&self, index: DeviceIndex) -> Option<ControllerState> {
         read_raw(&self.system, index).map(|raw| ControllerState::from(&raw))
     }
 
-    /// Where a render-model component (for example "tip") sits relative to the controller's
-    /// tracked pose, or `None` when it has none.
+    /// Where a render-model component sits relative to the controller's tracked pose, or `None`
+    /// when it has none. `model` is the device's [`StringProperty::RenderModelName`].
     pub fn component_transform(
         &self,
-        index: u32,
+        index: DeviceIndex,
         model: &str,
-        component: &str,
+        component: Component,
     ) -> Option<ComponentTransform> {
         let query = ComponentQuery {
             index,

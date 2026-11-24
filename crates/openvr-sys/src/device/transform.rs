@@ -1,10 +1,6 @@
 //! Decoding `SteamVR`'s 3x4 row-major matrices into a rotation and a translation.
 
-/// A 3D vector (metres, metres per second, or radians per second, by context).
-pub type Vec3 = [f64; 3];
-
-/// A 3x3 rotation, row-major.
-pub type Mat3 = [[f64; 3]; 3];
+use geometry::{Mat3, Vec3};
 
 /// `SteamVR`'s `HmdMatrix34_t`: three rows of rotation plus a translation column.
 pub(crate) type Matrix34 = [[f32; 4]; 3];
@@ -36,16 +32,17 @@ pub(crate) fn to_vec3(floats: [f32; 3]) -> Vec3 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::device::transform::{ComponentTransform, Matrix34, to_vec3};
+
+    const MATRIX: Matrix34 = [
+        [1.0, 2.0, 3.0, 10.0],
+        [4.0, 5.0, 6.0, 20.0],
+        [7.0, 8.0, 9.0, 30.0],
+    ];
 
     #[test]
     fn splits_rotation_rows_and_translation_column() {
-        let matrix: Matrix34 = [
-            [1.0, 2.0, 3.0, 10.0],
-            [4.0, 5.0, 6.0, 20.0],
-            [7.0, 8.0, 9.0, 30.0],
-        ];
-        let transform = ComponentTransform::from_matrix(&matrix);
+        let transform = ComponentTransform::from_matrix(&MATRIX);
         assert_eq!(
             transform.rot,
             [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]
