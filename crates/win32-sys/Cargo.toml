@@ -1,6 +1,6 @@
 [package]
 name = "win32-sys"
-description = "Safe wrappers for the Win32 calls the bridge needs: key state, beep, timer resolution"
+description = "Safe wrappers for the Win32 calls the bridge needs: key state, beep, timer resolution, HTTPS (WinHTTP)"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

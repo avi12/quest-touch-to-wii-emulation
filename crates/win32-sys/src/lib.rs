@@ -1,6 +1,7 @@
-//! Safe wrappers for the Win32 calls the bridge needs: key state, beep, timer resolution
+//! Safe wrappers for the Win32 calls the bridge needs: key state, beep, timer resolution, HTTPS
 
 mod beep;
+pub mod http;
 mod keyboard;
 mod timer;
 
