@@ -77,7 +77,7 @@ mod tests {
     const RELEASED_MS: u64 = 200;
     const STEADY_X: f64 = 0.1;
     const FOLLOWED_X: f64 = 0.9;
-    const EDGE_X: f64 = 0.95;
+    const EDGE_X: f64 = 1.0;
     const RELEASED_X: f64 = 0.5;
     const AWAY_X: f64 = 0.3;
 

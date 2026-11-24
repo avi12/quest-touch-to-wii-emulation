@@ -8,7 +8,10 @@ const YAW_RANGE: Radians = Degrees(28.0).to_radians(); // controller swing (each
 const PITCH_RANGE: Radians = Degrees(30.0).to_radians();
 const PITCH_BIAS: f64 = 0.0; // keep 0: a recenter must put the hand exactly in the middle of the screen
 const EDGE_THRESHOLD: f64 = 0.999; // pointer value that counts as pinned at the screen edge
-const POINTER_LIMIT: f64 = 0.95; // Dolphin drops each IR dot that leaves its camera frame; at +-1 one dot is already on the edge
+/// Full range: Dolphin's default IR settings put +-1 at the screen edges, Wii Menu included
+/// (`Cursor.cpp`), and its geometry (2 m away, 42 degree camera, 20 cm bar, 10 cm offset) keeps both
+/// dots in the camera frame there: at most 15.4 of 21 degrees across and 12.9 of 15.75 up or down.
+const POINTER_LIMIT: f64 = 1.0;
 /// Cosine between the aim and the screen's normal below which the aim is ignored (60 degrees off);
 /// nearer the plane the projection blows up to a corner.
 pub(crate) const MIN_DEPTH: f64 = 0.5;
