@@ -15,9 +15,11 @@ The headset only _tracks_ the controllers. SteamVR hands their poses to a small 
 
 ## Download
 
-Grab `touch_dsu.exe` from the [latest release](https://github.com/avi12/quest-touch-to-wii-emulation/releases/latest), put it in a folder of its own and double-click it. It starts both bridges (right controller = Wii Remote 1 on UDP 26760, left = Wii Remote 2 on 26761). Close its window to stop them.
+**Easiest: the setup guide.** Download `touch_dsu-setup-guide.zip` from the [latest release](https://github.com/avi12/quest-touch-to-wii-emulation/releases/latest), unzip it anywhere and run **Setup Guide.exe**. It walks you through every step and checks each one: connecting the headset and starting SteamVR, setting up Dolphin (backing up your config first), starting the bridges, and opening the Wii Menu with your game already in the drive. It is a native Windows app built with [winui-svelte](https://www.npmjs.com/package/winui-svelte).
 
-It **updates itself**: on every start it checks the latest GitHub release and, when there is a newer one, downloads it, swaps it in and restarts. Set `BRIDGE_NO_UPDATE=1` to skip that. Only release downloads update; builds from source never do. You still need the Dolphin config from `config/` (see [Dolphin setup](#dolphin-setup)).
+**Just the bridge:** `touch_dsu.exe` from the same release. Put it in a folder of its own and double-click it. It starts both bridges (right controller = Wii Remote 1 on UDP 26760, left = Wii Remote 2 on 26761). Close its window to stop them. You still need the Dolphin config from `config/` (see [Dolphin setup](#dolphin-setup)).
+
+Both update the bridge themselves: on every start it checks the latest GitHub release and, when there is a newer one, downloads it, swaps it in and restarts. Set `BRIDGE_NO_UPDATE=1` to skip that. Only release downloads update; builds from source never do.
 
 ## Requirements
 
@@ -111,6 +113,7 @@ crates/win32-sys    key state, beep, timer resolution, HTTPS through Windows' Wi
 crates/geometry     Vec3 / Mat3, shared by every crate
 crates/numeric      the one checked float-to-integer conversion, JavaScript-style number formatting
 crates/tools        diagnostics: dsu_probe, list_devices, controller_buttons, controller_tip_pose, calibrate_pointing_axis, telemetry_tail
+apps/guide          the setup guide (winui-svelte): `pnpm --dir apps/guide dev` runs it, `build` packages it
 scripts/            play.ps1 (everything in one step), start.ps1 / stop.ps1 (bridges; PID-based, never kills by name)
 config/             Dolphin config for Wii Remote 1 and 2
 tools/              keep_headset_awake.ps1
