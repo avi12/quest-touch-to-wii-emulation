@@ -180,29 +180,32 @@ importers:
         specifier: 7.0.0-dev.20260707.2
         version: 7.0.0-dev.20260707.2
       avi12-lint:
-        specifier: github:avi12/lint-config#v0.4.15&path:/packages/avi12-lint
-        version: https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/avi12-lint
+        specifier: github:avi12/lint-config#v0.11.0&path:/packages/avi12-lint
+        version: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/avi12-lint
       fallow:
         specifier: 2.103.0
         version: 2.103.0
       fallow-config-avi12:
-        specifier: github:avi12/lint-config#v0.4.15&path:/packages/fallow-config
-        version: https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/fallow-config(fallow@2.103.0)
+        specifier: github:avi12/lint-config#v0.11.0&path:/packages/fallow-config
+        version: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/fallow-config(fallow@2.103.0)
       oxfmt:
         specifier: ^0.78.0
         version: 0.78.0
       oxfmt-config-avi12:
-        specifier: github:avi12/lint-config#v0.4.15&path:/packages/oxfmt-config
-        version: https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/oxfmt-config(oxfmt@0.78.0)
+        specifier: github:avi12/lint-config#v0.11.0&path:/packages/oxfmt-config
+        version: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxfmt-config(oxfmt@0.78.0)
       oxlint:
         specifier: 1.90.0
         version: 1.90.0
       oxlint-config-avi12:
-        specifier: github:avi12/lint-config#v0.4.15&path:/packages/oxlint-config
-        version: https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/oxlint-config(eslint@10.14.0)(oxlint@1.90.0)(typescript@6.0.3)
+        specifier: github:avi12/lint-config#v0.11.0&path:/packages/oxlint-config
+        version: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxlint-config(eslint@10.14.0)(oxlint@1.90.0)(typescript@6.0.3)
       oxlint-plugin-naming:
-        specifier: github:avi12/lint-config#v0.4.15&path:/packages/oxlint-plugin-naming
-        version: https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/oxlint-plugin-naming(oxlint@1.90.0)
+        specifier: github:avi12/lint-config#v0.11.0&path:/packages/oxlint-plugin-naming
+        version: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxlint-plugin-naming(oxlint@1.90.0)
+      rust-config-avi12:
+        specifier: github:avi12/lint-config#v0.11.0&path:/packages/rust-config
+        version: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/rust-config
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -802,9 +805,9 @@ packages:
     resolution: {integrity: sha512-sqRsNQBwbKLRX0jV5Cu5uzmtflf892n4Vukz7T659ebL4pz3mpOqCMU7lxMoBTFwnp10E3YB5ZcyHM41W5bcDA==}
     engines: {node: '>=18'}
 
-  avi12-lint@https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/avi12-lint:
-    resolution: {gitHosted: true, integrity: sha512-92S8GB3It7C9bbo+ahnaCKygmGZArJtOcaqs0cKvrE3jJxjD6n2t8Z7Dz6IICrm1V22Xud4X8K8VXntrhGhAUw==, path: /packages/avi12-lint, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f}
-    version: 0.4.15
+  avi12-lint@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/avi12-lint:
+    resolution: {gitHosted: true, integrity: sha512-M3xfwFaU5EG7VZYVSeoP+lGWmzNcO9UWyWdLwlZbSVwmwubjzjDt8rq2RZFlyQRge6XLfS9mkHZjHd3OvpatHg==, path: /packages/avi12-lint, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5}
+    version: 0.11.0
     hasBin: true
 
   balanced-match@4.0.4:
@@ -933,9 +936,9 @@ packages:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
 
-  fallow-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/fallow-config:
-    resolution: {gitHosted: true, integrity: sha512-92S8GB3It7C9bbo+ahnaCKygmGZArJtOcaqs0cKvrE3jJxjD6n2t8Z7Dz6IICrm1V22Xud4X8K8VXntrhGhAUw==, path: /packages/fallow-config, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f}
-    version: 0.4.15
+  fallow-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/fallow-config:
+    resolution: {gitHosted: true, integrity: sha512-M3xfwFaU5EG7VZYVSeoP+lGWmzNcO9UWyWdLwlZbSVwmwubjzjDt8rq2RZFlyQRge6XLfS9mkHZjHd3OvpatHg==, path: /packages/fallow-config, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5}
+    version: 0.11.0
     peerDependencies:
       fallow: '>=2.103.0'
 
@@ -1056,9 +1059,9 @@ packages:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
     engines: {node: '>= 0.8.0'}
 
-  oxfmt-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/oxfmt-config:
-    resolution: {gitHosted: true, integrity: sha512-92S8GB3It7C9bbo+ahnaCKygmGZArJtOcaqs0cKvrE3jJxjD6n2t8Z7Dz6IICrm1V22Xud4X8K8VXntrhGhAUw==, path: /packages/oxfmt-config, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f}
-    version: 0.4.15
+  oxfmt-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxfmt-config:
+    resolution: {gitHosted: true, integrity: sha512-M3xfwFaU5EG7VZYVSeoP+lGWmzNcO9UWyWdLwlZbSVwmwubjzjDt8rq2RZFlyQRge6XLfS9mkHZjHd3OvpatHg==, path: /packages/oxfmt-config, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5}
+    version: 0.11.0
     peerDependencies:
       oxfmt: '>=0.78.0'
 
@@ -1078,15 +1081,15 @@ packages:
       vite-plus:
         optional: true
 
-  oxlint-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/oxlint-config:
-    resolution: {gitHosted: true, integrity: sha512-92S8GB3It7C9bbo+ahnaCKygmGZArJtOcaqs0cKvrE3jJxjD6n2t8Z7Dz6IICrm1V22Xud4X8K8VXntrhGhAUw==, path: /packages/oxlint-config, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f}
-    version: 0.4.15
+  oxlint-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxlint-config:
+    resolution: {gitHosted: true, integrity: sha512-M3xfwFaU5EG7VZYVSeoP+lGWmzNcO9UWyWdLwlZbSVwmwubjzjDt8rq2RZFlyQRge6XLfS9mkHZjHd3OvpatHg==, path: /packages/oxlint-config, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5}
+    version: 0.11.0
     peerDependencies:
       oxlint: '>=1.90.0'
 
-  oxlint-plugin-naming@https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/oxlint-plugin-naming:
-    resolution: {gitHosted: true, integrity: sha512-92S8GB3It7C9bbo+ahnaCKygmGZArJtOcaqs0cKvrE3jJxjD6n2t8Z7Dz6IICrm1V22Xud4X8K8VXntrhGhAUw==, path: /packages/oxlint-plugin-naming, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f}
-    version: 0.4.15
+  oxlint-plugin-naming@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxlint-plugin-naming:
+    resolution: {gitHosted: true, integrity: sha512-M3xfwFaU5EG7VZYVSeoP+lGWmzNcO9UWyWdLwlZbSVwmwubjzjDt8rq2RZFlyQRge6XLfS9mkHZjHd3OvpatHg==, path: /packages/oxlint-plugin-naming, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5}
+    version: 0.11.0
     peerDependencies:
       oxlint: '>=1.90.0'
 
@@ -1144,6 +1147,10 @@ packages:
   reserved-identifiers@1.2.0:
     resolution: {integrity: sha512-yE7KUfFvaBFzGPs5H3Ops1RevfUEsDc5Iz65rOwWg4lE8HJSYtle77uul3+573457oHvBKuHYDl/xqUkKpEEdw==}
     engines: {node: '>=18'}
+
+  rust-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/rust-config:
+    resolution: {gitHosted: true, integrity: sha512-M3xfwFaU5EG7VZYVSeoP+lGWmzNcO9UWyWdLwlZbSVwmwubjzjDt8rq2RZFlyQRge6XLfS9mkHZjHd3OvpatHg==, path: /packages/rust-config, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5}
+    version: 0.11.0
 
   semver@7.8.6:
     resolution: {integrity: sha512-9lpSSU4Mly3mrtruwLs1eLK6+gzbzqeBFwRNjIjE+9LuDpWdYctrQlQ3ej1Ilgi7gknpsTRnPoLP8DpCHqHIJw==}
@@ -1632,7 +1639,7 @@ snapshots:
 
   are-docs-informative@0.1.1: {}
 
-  avi12-lint@https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/avi12-lint: {}
+  avi12-lint@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/avi12-lint: {}
 
   balanced-match@4.0.4: {}
 
@@ -1781,7 +1788,7 @@ snapshots:
 
   esutils@2.0.3: {}
 
-  fallow-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/fallow-config(fallow@2.103.0):
+  fallow-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/fallow-config(fallow@2.103.0):
     dependencies:
       fallow: 2.103.0
 
@@ -1916,7 +1923,7 @@ snapshots:
       type-check: 0.4.0
       word-wrap: 1.2.5
 
-  oxfmt-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/oxfmt-config(oxfmt@0.78.0):
+  oxfmt-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxfmt-config(oxfmt@0.78.0):
     dependencies:
       oxfmt: 0.78.0
 
@@ -1944,7 +1951,7 @@ snapshots:
       '@oxfmt/binding-win32-ia32-msvc': 0.78.0
       '@oxfmt/binding-win32-x64-msvc': 0.78.0
 
-  oxlint-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/oxlint-config(eslint@10.14.0)(oxlint@1.90.0)(typescript@6.0.3):
+  oxlint-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxlint-config(eslint@10.14.0)(oxlint@1.90.0)(typescript@6.0.3):
     dependencies:
       '@stylistic/eslint-plugin': 5.10.0(eslint@10.14.0)
       eslint-plugin-jsdoc: 65.4.6(eslint@10.14.0)(typescript@6.0.3)
@@ -1957,7 +1964,7 @@ snapshots:
       - supports-color
       - typescript
 
-  oxlint-plugin-naming@https://codeload.github.com/avi12/lint-config/tar.gz/5679880db3f07730737c88709eec7f9619c2b42f#path:/packages/oxlint-plugin-naming(oxlint@1.90.0):
+  oxlint-plugin-naming@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxlint-plugin-naming(oxlint@1.90.0):
     dependencies:
       oxlint: 1.90.0
 
@@ -2012,6 +2019,8 @@ snapshots:
       hookified: 2.2.0
 
   reserved-identifiers@1.2.0: {}
+
+  rust-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/rust-config: {}
 
   semver@7.8.6: {}
 

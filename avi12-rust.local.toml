@@ -1,0 +1,17 @@
+# Exemptions of this workspace from the house lint levels (rust-config-avi12), each with its reason
+
+[member.openvr-sys.rust]
+# SteamVR's C API (openvr_api.dll function tables)
+unsafe_code = "allow"
+
+[member.win32-sys.rust]
+# Win32 key state, beep and timer resolution calls
+unsafe_code = "allow"
+
+[member.bridge.rust]
+# An application crate: nothing in it is public API outside this workspace, so item docs would only restate names
+missing_docs = "allow"
+
+[member.tools.rust]
+# Command-line diagnostics: no public API
+missing_docs = "allow"
