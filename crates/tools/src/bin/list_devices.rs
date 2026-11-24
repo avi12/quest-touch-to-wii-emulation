@@ -7,8 +7,8 @@
 
 use std::process::ExitCode;
 
-use openvr_sys::MAX_DEVICES;
-use tools::format::rounded;
+use numeric::format::rounded;
+use openvr_sys::DeviceIndex;
 
 const POSITION_DECIMALS: usize = 2;
 
@@ -21,6 +21,11 @@ fn format_coordinate(value: f64) -> String {
     format!("{text}.0")
 }
 
+/// The variant's name, or `unknown` for a code the binding does not know.
+fn debug_name(value: Option<impl std::fmt::Debug>) -> String {
+    value.map_or_else(|| "unknown".to_owned(), |known| format!("{known:?}"))
+}
+
 fn main() -> ExitCode {
     let openvr = match tools::steamvr::open() {
         Ok(openvr) => openvr,
@@ -30,22 +35,20 @@ fn main() -> ExitCode {
         }
     };
     let poses = openvr.poses();
-    let indices = (0..MAX_DEVICES).filter_map(|index| u32::try_from(index).ok());
-    for index in indices.filter(|index| openvr.is_connected(*index)) {
-        let Some(pose) = poses.get(index) else {
-            continue;
-        };
+    for index in DeviceIndex::all().filter(|index| openvr.is_connected(*index)) {
+        let pose = poses.get(index);
         let position: Vec<String> = pose
             .pos
             .iter()
             .map(|value| format_coordinate(*value))
             .collect();
         println!(
-            "{index} class {} role {} valid {} result {} pos [{}]",
-            openvr.device_class(index),
-            openvr.controller_role(index),
-            u8::from(pose.valid),
-            pose.tracking_result,
+            "{} class {} role {} valid {} result {} pos [{}]",
+            index.get(),
+            debug_name(openvr.device_class(index)),
+            debug_name(openvr.controller_role(index)),
+            u8::from(pose.is_valid),
+            debug_name(pose.tracking),
             position.join(", "),
         );
     }

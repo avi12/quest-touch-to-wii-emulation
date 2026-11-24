@@ -5,11 +5,13 @@ use std::io::{self, ErrorKind};
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
 use std::time::Duration;
 
-use dsu::{Event, FrameError, Magic, frame_dsu};
+use dsu::{Event, FrameError, Magic, SourceId, frame_dsu};
+
+use dsu::Port;
 
 /// The bridge listens on the loopback interface.
 pub const LOOPBACK: Ipv4Addr = Ipv4Addr::LOCALHOST;
-const CLIENT_ID: u32 = 1234;
+const CLIENT_ID: SourceId = SourceId(1234);
 const REPLY_TIMEOUT: Duration = Duration::from_secs(1);
 /// Actions, slot, MAC (6 bytes), all zero: "any pad".
 const REQUEST_BODY: [u8; 9] = [0; 9];
@@ -43,7 +45,7 @@ pub struct DsuClient {
 
 impl DsuClient {
     /// A client for the DSU server on `LOOPBACK:port`.
-    pub fn new(port: u16) -> Result<Self, ProbeError> {
+    pub fn new(port: Port) -> Result<Self, ProbeError> {
         let socket = UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0)).map_err(ProbeError::Socket)?;
         socket
             .set_read_timeout(Some(REPLY_TIMEOUT))
@@ -52,7 +54,7 @@ impl DsuClient {
             .map_err(ProbeError::Frame)?;
         Ok(Self {
             socket,
-            server: SocketAddr::from((LOOPBACK, port)),
+            server: SocketAddr::from((LOOPBACK, port.get())),
             request,
         })
     }

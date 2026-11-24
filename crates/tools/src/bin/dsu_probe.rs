@@ -6,9 +6,9 @@
 //! buttons. Use it to check the bridge without Dolphin: move the controller while it runs.
 
 use std::process::ExitCode;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
-use tools::args::command_line;
+use tools::cli::command_line;
 use tools::probe::{DsuClient, LOOPBACK, PadReading, ProbeOptions, ProbeSummary, USAGE};
 
 fn main() -> ExitCode {
@@ -24,8 +24,9 @@ fn main() -> ExitCode {
         }
     };
     let mut summary = ProbeSummary::default();
-    let end = Instant::now() + Duration::from_secs_f64(options.seconds);
-    while Instant::now() < end {
+    let end = Instant::now() + options.duration;
+    let is_running = || Instant::now() < end;
+    while is_running() {
         let reading = client
             .request_pad()
             .and_then(|data| PadReading::parse(&data));
@@ -33,10 +34,10 @@ fn main() -> ExitCode {
             summary.add(&reading);
         }
     }
-    if summary.packets() == 0 {
+    if summary.is_empty() {
         eprintln!(
             "no pad data from {LOOPBACK}:{} - is the bridge running and the controller tracked?",
-            options.port
+            options.port.get()
         );
         return ExitCode::FAILURE;
     }

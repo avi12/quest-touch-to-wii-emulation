@@ -2,10 +2,11 @@
 
 use std::fmt;
 
-use bridge::math::{Mat3, Vec3, norm};
+use bridge::math::norm;
+use geometry::{Mat3, Vec3};
 
-use super::{dominant_eigen, relative_rotation};
-use crate::format::{rounded_vector, to_fixed};
+use crate::twist::{dominant_eigen, relative_rotation};
+use numeric::format::{rounded_vector, to_fixed};
 
 /// Steps smaller than this (rad) are sensor noise.
 const MIN_ROTATION: f64 = 1e-4;
@@ -32,11 +33,13 @@ impl TwistRecorder {
 
     /// Adds the step to `current`; repeated poses (no new tracking data) are skipped.
     pub fn observe(&mut self, current: Mat3) {
-        if current == self.previous {
+        let is_repeat = current == self.previous;
+        if is_repeat {
             return;
         }
         let step = relative_rotation(self.previous, current);
-        if norm(step) > MIN_ROTATION {
+        let is_motion = norm(step) > MIN_ROTATION;
+        if is_motion {
             self.add_outer_product(step);
             self.samples += 1;
         }
@@ -55,7 +58,8 @@ impl TwistRecorder {
     pub fn axis(&self) -> Option<TwistAxis> {
         let [[x_x, _, _], [_, y_y, _], [_, _, z_z]] = self.covariance;
         let trace = x_x + y_y + z_z;
-        if self.samples == 0 || trace == 0.0 {
+        let is_still = self.samples == 0 || trace == 0.0;
+        if is_still {
             return None;
         }
         let eigen = dominant_eigen(self.covariance);
@@ -91,7 +95,12 @@ impl fmt::Display for TwistAxis {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use geometry::Mat3;
+
+    use crate::twist::TwistRecorder;
+
+    const STEPS: u32 = 20;
+    const STEP_ANGLE: f64 = 0.01;
 
     fn roll(angle: f64) -> Mat3 {
         [
@@ -105,9 +114,10 @@ mod tests {
     fn a_pure_roll_gives_the_z_axis() {
         let mut recorder = TwistRecorder::new(roll(0.0));
         assert!(recorder.axis().is_none());
-        for step in 1..=20 {
-            recorder.observe(roll(f64::from(step) * 0.01));
-            recorder.observe(roll(f64::from(step) * 0.01));
+        for i_step in 1..=STEPS {
+            let rotation = roll(f64::from(i_step) * STEP_ANGLE);
+            recorder.observe(rotation);
+            recorder.observe(rotation);
         }
         let twist = recorder.axis().unwrap();
         assert_eq!(twist.samples, 20);

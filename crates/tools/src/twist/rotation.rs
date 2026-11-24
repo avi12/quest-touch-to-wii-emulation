@@ -1,6 +1,7 @@
 //! The small rotation between two controller poses, in the controller's own frame.
 
-use bridge::math::{Mat3, Vec3, multiply_transposed, scale};
+use bridge::math::{multiply_transposed, scale};
+use geometry::{Mat3, Vec3};
 
 const HALF: f64 = 0.5;
 
@@ -19,11 +20,13 @@ pub fn relative_rotation(previous: Mat3, current: Mat3) -> Vec3 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::twist::relative_rotation;
+
+    const ANGLE: f64 = 0.01;
 
     #[test]
     fn small_roll_about_z_is_a_z_vector() {
-        let angle: f64 = 0.01;
+        let angle = ANGLE;
         let identity = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
         let roll = [
             [angle.cos(), -angle.sin(), 0.0],

@@ -2,10 +2,10 @@
 
 use std::fmt;
 
-use crate::format::to_fixed;
+use numeric::format::to_fixed;
 
 const SPREAD_DECIMALS: usize = 2;
-const PERCENT: f64 = 100.0;
+const PERCENT_PER_WHOLE: f64 = 100.0;
 
 /// Range and standard deviation of a series.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -57,23 +57,45 @@ pub fn count_f64(count: usize) -> f64 {
     f64::from(u32::try_from(count).unwrap_or(u32::MAX))
 }
 
-/// `part` as a percentage of `whole` (0 when `whole` is 0).
-pub fn percent(part: usize, whole: usize) -> f64 {
-    if whole == 0 {
-        return 0.0;
+/// A share of a whole, 0-100.
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+pub struct Percent(f64);
+
+impl Percent {
+    /// `part` as a percentage of `whole` (0 when `whole` is 0).
+    pub fn share(part: usize, whole: usize) -> Self {
+        let is_empty = whole == 0;
+        if is_empty {
+            return Self(0.0);
+        }
+        Self(count_f64(part) / count_f64(whole) * PERCENT_PER_WHOLE)
     }
-    count_f64(part) / count_f64(whole) * PERCENT
+
+    /// The percentage as a number, 0-100.
+    pub const fn get(self) -> f64 {
+        self.0
+    }
+
+    /// Rounded to a whole percent, the way `toFixed(0)` prints it.
+    pub fn whole_text(self) -> String {
+        to_fixed(self.0, 0)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::stats::{Percent, spread_text};
 
     #[test]
     fn spreads_a_series() {
         assert_eq!(spread_text(&[1.0, 3.0]), "1.00..3.00 sd 1.00");
         assert_eq!(spread_text(&[]), "-");
-        assert!((percent(1, 4) - 25.0).abs() < f64::EPSILON);
-        assert!(percent(1, 0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn takes_a_percentage() {
+        assert!((Percent::share(1, 4).get() - 25.0).abs() < f64::EPSILON);
+        assert!(Percent::share(1, 0).get().abs() < f64::EPSILON);
+        assert_eq!(Percent::share(2, 3).whole_text(), "67");
     }
 }

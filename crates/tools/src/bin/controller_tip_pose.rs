@@ -6,10 +6,9 @@
 
 use std::process::ExitCode;
 
-use openvr_sys::{ComponentTransform, PROPERTY};
-use tools::format::rounded_vector;
+use numeric::format::rounded_vector;
+use openvr_sys::{Component, ComponentTransform, StringProperty};
 
-const COMPONENTS: [&str; 3] = ["tip", "base", "handgrip"];
 const NAME_COLUMN_WIDTH: usize = 9;
 const DECIMALS: usize = 3;
 
@@ -26,11 +25,12 @@ fn format_component(name: &str, transform: &ComponentTransform) -> String {
 fn run() -> Result<(), String> {
     let openvr = tools::steamvr::open()?;
     let hand = tools::steamvr::right_controller(&openvr)?;
-    let model = openvr.string_property(hand, PROPERTY.render_model_name);
+    let model = openvr.string_property(hand, StringProperty::RenderModelName);
     println!("render model: {model}");
-    for name in COMPONENTS {
-        match openvr.component_transform(hand, &model, name) {
-            Some(transform) => println!("{}", format_component(name, &transform)),
+    for component in Component::ALL {
+        let name = component.name().to_string_lossy();
+        match openvr.component_transform(hand, &model, component) {
+            Some(transform) => println!("{}", format_component(&name, &transform)),
             None => println!("{name:<NAME_COLUMN_WIDTH$} not available"),
         }
     }

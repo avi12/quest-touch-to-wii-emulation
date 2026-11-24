@@ -11,19 +11,16 @@ use std::process::ExitCode;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use openvr_sys::{Mat3, OpenVr};
+use geometry::Mat3;
+use openvr_sys::{DeviceIndex, OpenVr};
 use tools::twist::TwistRecorder;
 
 const WARMUP: Duration = Duration::from_secs(10);
 const RECORD: Duration = Duration::from_secs(10);
 const POLL: Duration = Duration::from_millis(10);
 
-fn rotation(openvr: &OpenVr, hand: u32) -> Result<Mat3, String> {
-    openvr
-        .poses()
-        .get(hand)
-        .map(|pose| pose.rot)
-        .ok_or_else(|| "controller pose unavailable".to_owned())
+fn rotation(openvr: &OpenVr, hand: DeviceIndex) -> Mat3 {
+    openvr.poses().get(hand).rot
 }
 
 fn run() -> Result<String, String> {
@@ -31,11 +28,12 @@ fn run() -> Result<String, String> {
     let hand = tools::steamvr::right_controller(&openvr)?;
     sleep(WARMUP);
     println!("recording - twist now");
-    let mut recorder = TwistRecorder::new(rotation(&openvr, hand)?);
+    let mut recorder = TwistRecorder::new(rotation(&openvr, hand));
     let end = Instant::now() + RECORD;
-    while Instant::now() < end {
+    let is_recording = || Instant::now() < end;
+    while is_recording() {
         sleep(POLL);
-        recorder.observe(rotation(&openvr, hand)?);
+        recorder.observe(rotation(&openvr, hand));
     }
     recorder
         .axis()
