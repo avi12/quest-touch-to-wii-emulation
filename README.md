@@ -26,6 +26,8 @@ The headset only _tracks_ the controllers. SteamVR hands their poses to a small 
 3. Start the bridges: `scripts\start.ps1` (stop them with `scripts\stop.ps1`).
 4. Open Dolphin and a Wii game. Aim at the middle of the screen and **click the right thumbstick** to recenter.
 
+**One step instead:** `scripts\play.ps1` starts SteamVR, the bridges and Dolphin's Wii Menu with your game already in the drive (Disc Channel). Put the two paths in `.play.json` (gitignored) once: `{ "dolphin": "C:\…\Dolphin.exe", "disc": "C:\…\Wii Sports.rvz" }`, or pass `-Dolphin` / `-Disc`.
+
 ## Controls
 
 | Touch               | Wii Remote                  |
