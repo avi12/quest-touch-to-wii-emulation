@@ -1,16 +1,21 @@
 use std::collections::VecDeque;
+use std::time::Duration;
 
-use super::{Motion, PoseSample};
-use crate::math::{Vec3, add, degrees_to_radians, norm, scale, subtract};
+use crate::math::{
+    Degrees, MetresPerSecondSquared, Radians, RadiansPerSecond, Vec3, add, norm, scale, subtract,
+};
+use crate::motion::{Motion, PoseSample};
 
-const MAX_ANGULAR_RATE: f64 = degrees_to_radians(1200.0); // faster than this is a tracking jump, not real motion
-const ACCELERATION_WINDOW_SECONDS: f64 = 0.015; // velocity change is measured over at least this long
+const MAX_ANGULAR_RATE: Radians = Degrees(1200.0).to_radians(); // per second; faster is a tracking jump, not real motion
+const ACCELERATION_WINDOW: Duration = Duration::from_millis(15); // velocity change is measured over at least this long
 const ACCELERATION_SMOOTHING: f64 = 0.35;
 const NO_MOTION: Vec3 = [0.0; 3];
 
 #[derive(Clone, Copy, Debug)]
 struct VelocitySample {
+    /// Monotonic clock, seconds.
     sampled_at: f64,
+    /// m/s.
     velocity: Vec3,
 }
 
@@ -44,19 +49,27 @@ impl MotionTracker {
     }
 
     pub fn update(&mut self, pose: &PoseSample) -> Motion {
-        self.track_velocity(pose.velocity, pose.timestamp_seconds);
-        let is_real_rotation = norm(pose.angular_velocity) <= MAX_ANGULAR_RATE; // faster is a tracking jump
+        self.track_velocity(pose.velocity.0, pose.timestamp.as_secs_f64());
+        let RadiansPerSecond(angular_velocity) = pose.angular_velocity;
+        let is_real_rotation = norm(angular_velocity) <= MAX_ANGULAR_RATE.0; // faster is a tracking jump
         if is_real_rotation {
-            self.angular = pose.angular_velocity;
+            self.angular = angular_velocity;
         }
         self.smoothed = add(
             scale(self.smoothed, ACCELERATION_SMOOTHING),
             scale(self.linear, 1.0 - ACCELERATION_SMOOTHING),
         );
         Motion {
-            acceleration: self.smoothed,
-            angular_rate: self.angular,
+            acceleration: MetresPerSecondSquared(self.smoothed),
+            angular_rate: RadiansPerSecond(self.angular),
         }
+    }
+
+    /// Whether the second-oldest sample is already a full window old, so the oldest can go.
+    fn is_oldest_stale(&self, now: f64) -> bool {
+        self.history
+            .get(1)
+            .is_some_and(|sample| sample.sampled_at <= now - ACCELERATION_WINDOW.as_secs_f64())
     }
 
     fn track_velocity(&mut self, velocity: Vec3, now: f64) {
@@ -64,19 +77,14 @@ impl MotionTracker {
             sampled_at: now,
             velocity,
         });
-        while self
-            .history
-            .get(1)
-            .map_or(f64::INFINITY, |sample| sample.sampled_at)
-            <= now - ACCELERATION_WINDOW_SECONDS
-        {
+        while self.is_oldest_stale(now) {
             self.history.pop_front();
         }
         let Some(anchor) = self.history.front() else {
             return;
         };
         let seconds = now - anchor.sampled_at;
-        let has_baseline = seconds >= ACCELERATION_WINDOW_SECONDS / 2.0;
+        let has_baseline = seconds >= ACCELERATION_WINDOW.as_secs_f64() / 2.0;
         if !has_baseline {
             return;
         }

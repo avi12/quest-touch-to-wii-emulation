@@ -2,20 +2,22 @@
 
 use std::time::{Duration, Instant};
 
+use win32_sys::Hertz;
+
 /// A change must hold this long (ignores tracking blips).
 const HOLD: Duration = Duration::from_millis(1000);
-const CONNECTED_BEEP_HZ: u32 = 1200;
-const DISCONNECTED_BEEP_HZ: u32 = 500;
-const BEEP_MS: u32 = 200;
+const CONNECTED_TONE: Hertz = Hertz(1200);
+const DISCONNECTED_TONE: Hertz = Hertz(500);
+const BEEP_LENGTH: Duration = Duration::from_millis(200);
 
 /// The high beep for "on / connected", the low one for "off / disconnected".
 pub fn beep_switch(is_on: bool) {
-    let frequency_hz = if is_on {
-        CONNECTED_BEEP_HZ
+    let tone = if is_on {
+        CONNECTED_TONE
     } else {
-        DISCONNECTED_BEEP_HZ
+        DISCONNECTED_TONE
     };
-    win32_sys::beep(frequency_hz, BEEP_MS);
+    win32_sys::beep(tone, BEEP_LENGTH);
 }
 
 /// Follows whether the left controller is tracked, debounced by [`HOLD`].
@@ -49,11 +51,13 @@ impl SecondControllerWatcher {
 
     /// The new state once a change has held for longer than [`HOLD`], else `None`.
     fn settle(&mut self, is_tracked: bool, now: Instant) -> Option<bool> {
-        if is_tracked == self.is_seen {
+        let is_unchanged = is_tracked == self.is_seen;
+        if is_unchanged {
             self.changed_at = now;
             return None;
         }
-        if now.duration_since(self.changed_at) <= HOLD {
+        let is_settling = now.duration_since(self.changed_at) <= HOLD;
+        if is_settling {
             return None;
         }
         self.is_seen = is_tracked;
@@ -63,7 +67,13 @@ impl SecondControllerWatcher {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::time::{Duration, Instant};
+
+    use crate::session::SecondControllerWatcher;
+    use crate::session::tracking::HOLD;
+
+    const BLIP: Duration = Duration::from_millis(900);
+    const LONG_AFTER: u32 = 3;
 
     #[test]
     fn reports_a_change_only_after_it_holds() {
@@ -74,18 +84,15 @@ mod tests {
             watcher.settle(true, start + HOLD + Duration::from_millis(1)),
             Some(true)
         );
-        assert_eq!(watcher.settle(true, start + HOLD * 3), None);
+        assert_eq!(watcher.settle(true, start + HOLD * LONG_AFTER), None);
     }
 
     #[test]
     fn a_blip_restarts_the_hold() {
         let start = Instant::now();
         let mut watcher = SecondControllerWatcher::new(start);
-        let blip = start + Duration::from_millis(900);
+        let blip = start + BLIP;
         assert_eq!(watcher.settle(false, blip), None);
-        assert_eq!(
-            watcher.settle(true, blip + Duration::from_millis(900)),
-            None
-        );
+        assert_eq!(watcher.settle(true, blip + BLIP), None);
     }
 }

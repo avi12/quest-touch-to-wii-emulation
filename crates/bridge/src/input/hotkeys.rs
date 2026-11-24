@@ -1,60 +1,47 @@
 //! Global Ctrl+Alt hotkeys (never clash with Dolphin's), reported once per key press.
 
-use win32_sys::{KEY, VirtualKey};
+use openvr_sys::Hand;
+use win32_sys::VirtualKey;
 
-/// Which way Ctrl+Alt+] / [ cycles the pointing axis this frame.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum CandidateStep {
-    Previous,
-    Stay,
-    Next,
-}
-
-impl CandidateStep {
-    /// The step for `Pointer::cycle_candidate`, or `None` when staying.
-    pub fn offset(self) -> Option<isize> {
-        match self {
-            Self::Previous => Some(-1),
-            Self::Stay => None,
-            Self::Next => Some(1),
-        }
-    }
-}
+use crate::pointer::CandidateStep;
 
 /// What the hotkeys asked for this frame.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct HotkeyEvents {
     /// Ctrl+Alt+L: switch the left controller on or off.
     pub is_left_toggled: bool,
-    pub candidate_step: CandidateStep,
+    /// Ctrl+Alt+] / [: cycle the pointing axis; `None` when neither was pressed.
+    pub candidate_step: Option<CandidateStep>,
 }
 
 #[derive(Clone, Copy, Debug, Default)]
 struct RisingEdge {
-    was_down: bool,
+    is_held: bool,
 }
 
 impl RisingEdge {
     fn update(&mut self, is_down: bool) -> bool {
-        let is_edge = is_down && !self.was_down;
-        self.was_down = is_down;
+        let is_edge = is_down && !self.is_held;
+        self.is_held = is_down;
         is_edge
     }
 }
 
-/// Polls the Ctrl+Alt hotkeys; the pointing-axis keys only work in the first bridge.
+/// Polls the Ctrl+Alt hotkeys; the pointing-axis keys only work in the right-hand bridge (Wii
+/// Remote 1).
 #[derive(Clone, Copy, Debug)]
 pub struct Hotkeys {
-    is_player2: bool,
+    hand: Hand,
     toggle: RisingEdge,
     next: RisingEdge,
     previous: RisingEdge,
 }
 
 impl Hotkeys {
-    pub fn new(is_player2: bool) -> Self {
+    /// Hotkeys for the bridge that reads the `hand` controller.
+    pub fn new(hand: Hand) -> Self {
         Self {
-            is_player2,
+            hand,
             toggle: RisingEdge::default(),
             next: RisingEdge::default(),
             previous: RisingEdge::default(),
@@ -63,23 +50,25 @@ impl Hotkeys {
 
     /// `is_down` reads one key (`win32_sys::is_key_down`, or a test double).
     pub fn poll(&mut self, is_down: impl Fn(VirtualKey) -> bool) -> HotkeyEvents {
-        let is_modifier_held = is_down(KEY.ctrl) && is_down(KEY.alt);
-        let is_cycle_enabled = is_modifier_held && !self.is_player2;
+        let is_modifier_held = is_down(VirtualKey::Control) && is_down(VirtualKey::Alt);
+        let is_cycle_enabled = is_modifier_held && self.hand == Hand::Right;
         let is_next_pressed = self
             .next
-            .update(is_cycle_enabled && is_down(KEY.right_bracket));
+            .update(is_cycle_enabled && is_down(VirtualKey::RightBracket));
         let is_previous_pressed = self
             .previous
-            .update(is_cycle_enabled && is_down(KEY.left_bracket));
+            .update(is_cycle_enabled && is_down(VirtualKey::LeftBracket));
         let candidate_step = if is_next_pressed {
-            CandidateStep::Next
+            Some(CandidateStep::Next)
         } else if is_previous_pressed {
-            CandidateStep::Previous
+            Some(CandidateStep::Previous)
         } else {
-            CandidateStep::Stay
+            None
         };
         HotkeyEvents {
-            is_left_toggled: self.toggle.update(is_modifier_held && is_down(KEY.key_l)),
+            is_left_toggled: self
+                .toggle
+                .update(is_modifier_held && is_down(VirtualKey::KeyL)),
             candidate_step,
         }
     }
@@ -87,7 +76,11 @@ impl Hotkeys {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use openvr_sys::Hand;
+    use win32_sys::VirtualKey::{self, Alt, Control, KeyL, LeftBracket, RightBracket};
+
+    use crate::input::Hotkeys;
+    use crate::pointer::CandidateStep;
 
     fn held(keys: &[VirtualKey]) -> impl Fn(VirtualKey) -> bool {
         move |key| keys.contains(&key)
@@ -95,8 +88,8 @@ mod tests {
 
     #[test]
     fn reports_each_press_once() {
-        let mut hotkeys = Hotkeys::new(false);
-        let chord = [KEY.ctrl, KEY.alt, KEY.key_l];
+        let mut hotkeys = Hotkeys::new(Hand::Right);
+        let chord = [Control, Alt, KeyL];
         assert!(hotkeys.poll(held(&chord)).is_left_toggled);
         assert!(!hotkeys.poll(held(&chord)).is_left_toggled);
         assert!(!hotkeys.poll(held(&[])).is_left_toggled);
@@ -105,28 +98,26 @@ mod tests {
 
     #[test]
     fn needs_both_modifiers() {
-        let mut hotkeys = Hotkeys::new(false);
-        assert!(!hotkeys.poll(held(&[KEY.ctrl, KEY.key_l])).is_left_toggled);
+        let mut hotkeys = Hotkeys::new(Hand::Right);
+        assert!(!hotkeys.poll(held(&[Control, KeyL])).is_left_toggled);
     }
 
     #[test]
-    fn cycles_only_in_the_first_bridge() {
-        let next = [KEY.ctrl, KEY.alt, KEY.right_bracket];
-        let previous = [KEY.ctrl, KEY.alt, KEY.left_bracket];
+    fn cycles_only_in_the_right_hand_bridge() {
+        let next = [Control, Alt, RightBracket];
+        let previous = [Control, Alt, LeftBracket];
         assert_eq!(
-            Hotkeys::new(false).poll(held(&next)).candidate_step,
-            CandidateStep::Next
+            Hotkeys::new(Hand::Right).poll(held(&next)).candidate_step,
+            Some(CandidateStep::Next)
         );
         assert_eq!(
-            Hotkeys::new(false).poll(held(&previous)).candidate_step,
-            CandidateStep::Previous
+            Hotkeys::new(Hand::Right)
+                .poll(held(&previous))
+                .candidate_step,
+            Some(CandidateStep::Previous)
         );
-        let mut second = Hotkeys::new(true);
-        assert_eq!(second.poll(held(&next)).candidate_step, CandidateStep::Stay);
-        assert!(
-            second
-                .poll(held(&[KEY.ctrl, KEY.alt, KEY.key_l]))
-                .is_left_toggled
-        );
+        let mut second = Hotkeys::new(Hand::Left);
+        assert_eq!(second.poll(held(&next)).candidate_step, None);
+        assert!(second.poll(held(&[Control, Alt, KeyL])).is_left_toggled);
     }
 }

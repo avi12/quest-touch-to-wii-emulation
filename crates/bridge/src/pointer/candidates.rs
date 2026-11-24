@@ -51,24 +51,34 @@ pub const CANDIDATES: [Candidate; 9] = [
 /// "Meta aim ray": measured level (7 deg) when holding still aimed at the screen; -z was 44 deg up.
 pub const DEFAULT_CANDIDATE_INDEX: usize = 7;
 
-/// The candidate index `step` places away from `index`, wrapping around both ends.
-pub(crate) fn step_candidate(index: usize, step: isize) -> usize {
+/// Which way Ctrl+Alt+] / [ cycles the pointing axis.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CandidateStep {
+    Previous,
+    Next,
+}
+
+/// The candidate index one `step` away from `index`, wrapping around both ends.
+pub(crate) fn step_candidate(index: usize, step: CandidateStep) -> usize {
     let count = CANDIDATES.len();
-    let distance = step.unsigned_abs() % count;
-    if step >= 0 {
-        return (index + distance) % count;
+    match step {
+        CandidateStep::Next => (index + 1) % count,
+        CandidateStep::Previous => (index + count - 1) % count,
     }
-    (index + count - distance) % count
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::pointer::candidates::{
+        CANDIDATES, CandidateStep, DEFAULT_CANDIDATE_INDEX, step_candidate,
+    };
 
     #[test]
     fn steps_wrap_both_ways() {
-        assert_eq!(step_candidate(8, 1), 0);
-        assert_eq!(step_candidate(0, -1), 8);
-        assert_eq!(step_candidate(DEFAULT_CANDIDATE_INDEX, 0), 7);
+        let last = CANDIDATES.len() - 1;
+        assert_eq!(step_candidate(last, CandidateStep::Next), 0);
+        assert_eq!(step_candidate(0, CandidateStep::Previous), last);
+        let after_default = step_candidate(DEFAULT_CANDIDATE_INDEX, CandidateStep::Next);
+        assert_eq!(step_candidate(after_default, CandidateStep::Previous), 7);
     }
 }

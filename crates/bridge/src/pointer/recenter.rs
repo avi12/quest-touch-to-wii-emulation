@@ -1,16 +1,18 @@
-use super::screen::is_aim_usable;
-use crate::math::{Vec3, angle_between, degrees_to_radians};
+use std::time::Duration;
 
-const EDGE_HOLD_MS: f64 = 800.0; // pinned and still this long: the screen is where you aim now
-const MS_PER_SECOND: f64 = 1000.0;
-const STILL_RATE: f64 = degrees_to_radians(20.0); // rad/s below which the controller counts as held still
+use crate::math::{Degrees, Radians, Vec3, angle_between};
+use crate::pointer::screen::is_aim_usable;
+
+const EDGE_HOLD: Duration = Duration::from_millis(800); // pinned and still this long: the screen is where you aim now
+const STILL_RATE: Radians = Degrees(20.0).to_radians(); // per second; slower counts as held still
 
 /// One frame's input to the edge-hold auto-recenter.
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct EdgeSample {
     pub(crate) direction: Vec3,
-    pub(crate) delta_seconds: f64,
-    pub(crate) now_seconds: f64,
+    pub(crate) delta: Duration,
+    /// Monotonic clock.
+    pub(crate) now: Duration,
     pub(crate) is_pinned: bool,
 }
 
@@ -18,7 +20,7 @@ pub(crate) struct EdgeSample {
 #[derive(Clone, Debug, Default)]
 pub(crate) struct EdgeHold {
     previous_direction: Option<Vec3>,
-    pinned_still_since: Option<f64>,
+    pinned_still_since: Option<Duration>,
 }
 
 impl EdgeHold {
@@ -29,15 +31,19 @@ impl EdgeHold {
         let turned_by = self
             .previous_direction
             .replace(direction)
-            .map_or(f64::INFINITY, |previous| angle_between(previous, direction));
-        let is_still = turned_by / sample.delta_seconds < STILL_RATE;
-        if !sample.is_pinned || !is_still {
+            .map_or(f64::INFINITY, |previous| {
+                angle_between(previous, direction).0
+            });
+        let is_still = turned_by / sample.delta.as_secs_f64() < STILL_RATE.0;
+        let is_pinned_still = sample.is_pinned && is_still;
+        if !is_pinned_still {
             self.pinned_still_since = None;
             return false;
         }
-        let since = *self.pinned_still_since.get_or_insert(sample.now_seconds);
-        let is_held_long_enough = (sample.now_seconds - since) * MS_PER_SECOND > EDGE_HOLD_MS;
-        if !is_held_long_enough || !is_aim_usable(direction) {
+        let since = *self.pinned_still_since.get_or_insert(sample.now);
+        let is_held_long_enough = sample.now.saturating_sub(since) > EDGE_HOLD;
+        let is_due = is_held_long_enough && is_aim_usable(direction);
+        if !is_due {
             return false;
         }
         self.pinned_still_since = None;
@@ -47,16 +53,27 @@ impl EdgeHold {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::time::Duration;
+
+    use crate::math::Vec3;
+    use crate::pointer::recenter::{EdgeHold, EdgeSample};
 
     const AHEAD: Vec3 = [0.0, 0.0, -1.0];
-    const FRAME_SECONDS: f64 = 0.004;
+    const FRAME: Duration = Duration::from_millis(4);
+    const START: Duration = Duration::ZERO;
+    const HOLD_STARTS: Duration = Duration::from_millis(100);
+    /// Exactly the hold after it started: not yet longer than it.
+    const HOLD_ENDS: Duration = Duration::from_millis(900);
+    const PAST_HOLD: Duration = Duration::from_millis(950);
+    const AFTER_FIRING: Duration = Duration::from_millis(960);
+    const UNPINNED_AT: Duration = Duration::from_millis(500);
+    const REPINNED_AT: Duration = Duration::from_secs(1);
 
-    fn sample(now_seconds: f64, is_pinned: bool) -> EdgeSample {
+    fn sample(now: Duration, is_pinned: bool) -> EdgeSample {
         EdgeSample {
             direction: AHEAD,
-            delta_seconds: FRAME_SECONDS,
-            now_seconds,
+            delta: FRAME,
+            now,
             is_pinned,
         }
     }
@@ -64,19 +81,19 @@ mod tests {
     #[test]
     fn fires_once_after_the_hold() {
         let mut hold = EdgeHold::default();
-        assert!(!hold.is_pinned_and_still(&sample(0.0, true))); // first frame: no turn rate yet
-        assert!(!hold.is_pinned_and_still(&sample(0.1, true)));
-        assert!(!hold.is_pinned_and_still(&sample(0.9, true)));
-        assert!(hold.is_pinned_and_still(&sample(0.95, true)));
-        assert!(!hold.is_pinned_and_still(&sample(0.96, true)));
+        assert!(!hold.is_pinned_and_still(&sample(START, true))); // first frame: no turn rate yet
+        assert!(!hold.is_pinned_and_still(&sample(HOLD_STARTS, true)));
+        assert!(!hold.is_pinned_and_still(&sample(HOLD_ENDS, true)));
+        assert!(hold.is_pinned_and_still(&sample(PAST_HOLD, true)));
+        assert!(!hold.is_pinned_and_still(&sample(AFTER_FIRING, true)));
     }
 
     #[test]
     fn unpinning_restarts_the_hold() {
         let mut hold = EdgeHold::default();
-        hold.is_pinned_and_still(&sample(0.0, true));
-        hold.is_pinned_and_still(&sample(0.1, true));
-        hold.is_pinned_and_still(&sample(0.5, false));
-        assert!(!hold.is_pinned_and_still(&sample(1.0, true)));
+        hold.is_pinned_and_still(&sample(START, true));
+        hold.is_pinned_and_still(&sample(HOLD_STARTS, true));
+        hold.is_pinned_and_still(&sample(UNPINNED_AT, false));
+        assert!(!hold.is_pinned_and_still(&sample(REPINNED_AT, true)));
     }
 }

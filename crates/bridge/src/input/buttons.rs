@@ -1,12 +1,12 @@
 //! Touch controllers -> one DSU pad, bound as `config/` expects in Dolphin.
 
 use std::ops::BitOrAssign;
+use std::time::Duration;
 
-use dsu::{Buttons1, Buttons2, PadState, stick_byte};
-use num_traits::ToPrimitive;
+use dsu::{Buttons1, Buttons2, PadState, Shoulders, Stick};
 use openvr_sys::Button;
 
-use super::Controllers;
+use crate::input::Controllers;
 use crate::motion::Sensors;
 use crate::pointer::PointerPosition;
 
@@ -16,7 +16,6 @@ const PRESS_THRESHOLD: f64 = 0.5;
 const STICK_THRESHOLD: f64 = 0.6;
 const BYTE_MAX: f64 = 255.0;
 const BYTE_VALUES: i64 = 256;
-const MICROSECONDS_PER_MILLISECOND: u64 = 1000;
 
 /// Everything one pad snapshot is built from.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -26,8 +25,8 @@ pub struct PadInput {
     pub is_left_attached: bool,
     pub pointer: PointerPosition,
     pub sensors: Sensors,
-    /// Wall clock, milliseconds since the Unix epoch.
-    pub now_epoch_ms: u64,
+    /// Wall clock since the Unix epoch, in whole milliseconds.
+    pub wall_clock: Duration,
 }
 
 fn combine<T: Copy + Default + BitOrAssign>(rules: &[(bool, T)]) -> T {
@@ -42,7 +41,7 @@ fn combine<T: Copy + Default + BitOrAssign>(rules: &[(bool, T)]) -> T {
 
 /// `Math.trunc(analog * 255)` stored as a byte the way the TypeScript `Buffer.from` did (mod 256).
 fn to_byte(analog: f64) -> u8 {
-    let truncated = (analog * BYTE_MAX).trunc().to_i64().unwrap_or(0);
+    let truncated = numeric::truncate_to_i64(analog * BYTE_MAX).unwrap_or(0);
     u8::try_from(truncated.rem_euclid(BYTE_VALUES)).unwrap_or(0)
 }
 
@@ -66,7 +65,7 @@ fn second_buttons(Controllers { right, left }: &Controllers) -> Buttons2 {
         (right.is_down(Button::Primary), Buttons2::FACE_A),
         (right.is_down(Button::Secondary), Buttons2::FACE_B),
         (left.is_down(Button::Primary), Buttons2::FACE_X),
-        // Dolphin's Wii button 2 is bound to the analog R2 (see the triggers in build_pad).
+        // Dolphin's Wii button 2 is bound to the analog R2 (see `shoulders`).
         (left.is_down(Button::Secondary), Buttons2::TRIGGER_R2),
         // Dolphin's Wii Home is bound to Triangle.
         (right.trig > PRESS_THRESHOLD, Buttons2::FACE_Y),
@@ -76,14 +75,14 @@ fn second_buttons(Controllers { right, left }: &Controllers) -> Buttons2 {
     ])
 }
 
-fn triggers(Controllers { right, left }: &Controllers) -> [u8; 4] {
+fn shoulders(Controllers { right, left }: &Controllers) -> Shoulders {
     let is_left_b = left.is_down(Button::Secondary);
-    [
-        to_byte(right.grip),
-        to_byte(left.grip),
-        to_byte(f64::from(u8::from(is_left_b))),
-        to_byte(left.trig),
-    ]
+    Shoulders {
+        right_shoulder: to_byte(right.grip),
+        left_shoulder: to_byte(left.grip),
+        right_trigger: to_byte(f64::from(u8::from(is_left_b))),
+        left_trigger: to_byte(left.trig),
+    }
 }
 
 /// One DSU pad snapshot from both controllers, the pointer and the motion sensors.
@@ -98,78 +97,14 @@ pub fn build_pad(input: &PadInput) -> PadState {
     PadState {
         buttons1: first_buttons(controllers, input.is_left_attached),
         buttons2: second_buttons(controllers),
-        sticks: [left_x, left_y, pointer.x, pointer.y].map(stick_byte),
-        triggers: triggers(controllers),
-        ts_us: input.now_epoch_ms * MICROSECONDS_PER_MILLISECOND,
-        accel: sensors.accel,
-        gyro: sensors.gyro,
+        left_stick: Stick::from_unit(left_x, left_y),
+        right_stick: Stick::from_unit(pointer.x, pointer.y),
+        shoulders: shoulders(controllers),
+        timestamp: input.wall_clock,
+        accel: sensors.accel.0,
+        gyro: sensors.gyro.0,
     }
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::input::Controls;
-
-    fn controls(stick: [f64; 2], trig: f64, grip: f64, held: &[Button]) -> Controls {
-        let mut controls = Controls::default().holding(held);
-        controls.stick = stick;
-        controls.trig = trig;
-        controls.grip = grip;
-        controls
-    }
-
-    fn first_controls() -> Controls {
-        let held = [Button::Primary, Button::Click, Button::System];
-        controls([0.7, -0.65], 0.6, 0.999, &held)
-    }
-
-    fn second_controls() -> Controls {
-        controls([-0.3, 0.42], 0.51, 0.2, &[Button::Secondary])
-    }
-
-    fn pad(right: Controls, left: Controls, is_left_attached: bool) -> PadState {
-        let (pointer, sensors) = if is_left_attached {
-            let sensors = Sensors {
-                accel: [0.1, -1.0, 0.2],
-                gyro: [1.0, 2.0, 3.0],
-            };
-            (PointerPosition { x: 0.25, y: -0.8 }, sensors)
-        } else {
-            let still = crate::motion::LEVEL_STILL_SENSORS;
-            (PointerPosition { x: -1.0, y: 0.0 }, still)
-        };
-        build_pad(&PadInput {
-            controllers: Controllers { right, left },
-            is_left_attached,
-            pointer,
-            sensors,
-            now_epoch_ms: 1_700_000_000_123,
-        })
-    }
-
-    /// Golden values printed by the TypeScript `buildPad` for the same input.
-    #[test]
-    fn matches_typescript() {
-        let first = pad(first_controls(), second_controls(), true);
-        assert_eq!((first.buttons1.0, first.buttons2.0), (103, 171));
-        assert_eq!(first.sticks, [89, 181, 159, 25]);
-        assert_eq!(first.triggers, [254, 51, 255, 130]);
-        assert_eq!(first.ts_us, 1_700_000_000_123_000);
-        assert_eq!(first.gyro, [1.0, 2.0, 3.0]);
-        let second = pad(second_controls(), first_controls(), false);
-        assert_eq!((second.buttons1.0, second.buttons2.0), (8, 213));
-        assert_eq!(second.sticks, [217, 45, 0, 128]);
-        assert_eq!(second.triggers, [51, 254, 0, 153]);
-    }
-
-    #[test]
-    fn nothing_held_is_an_empty_pad() {
-        let idle = pad(Controls::default(), Controls::default(), false);
-        assert_eq!(
-            (idle.buttons1, idle.buttons2),
-            (Buttons1::NONE, Buttons2::NONE)
-        );
-        assert_eq!(idle.triggers, [0; 4]);
-    }
-}
+mod tests;

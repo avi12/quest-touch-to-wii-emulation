@@ -13,7 +13,8 @@ pub(crate) fn make_basis(forward: Vec3, upward: Vec3) -> Mat3 {
 
 /// Any axis not parallel to the aim, made perpendicular to it.
 pub(crate) fn default_up(forward: Vec3) -> Vec3 {
-    let hint = if forward[1].abs() < DEFAULT_UP_HINT_LIMIT {
+    let is_aim_level_enough = forward[1].abs() < DEFAULT_UP_HINT_LIMIT;
+    let hint = if is_aim_level_enough {
         WORLD_UP
     } else {
         FORWARD_HINT
@@ -25,7 +26,8 @@ pub(crate) fn default_up(forward: Vec3) -> Vec3 {
 /// tell which way is up.
 pub(crate) fn upright_basis(rotation: Mat3, aim: Vec3) -> Option<Mat3> {
     let upward = remove_component(multiply_transposed(rotation, WORLD_UP), aim);
-    if norm(upward) <= MIN_UP_LENGTH {
+    let is_too_vertical = norm(upward) <= MIN_UP_LENGTH;
+    if is_too_vertical {
         return None;
     }
     Some(make_basis(aim, normalize(upward)))

@@ -1,9 +1,11 @@
-use super::PointerPosition;
-use super::screen::Screen;
-use crate::math::{OneEuro, Vec3, degrees_to_radians};
+use std::time::Duration;
 
-const YAW_RANGE: f64 = degrees_to_radians(28.0); // controller swing (each way) that spans the whole screen width
-const PITCH_RANGE: f64 = degrees_to_radians(30.0);
+use crate::math::{Degrees, OneEuro, Radians, Vec3};
+use crate::pointer::PointerPosition;
+use crate::pointer::screen::Screen;
+
+const YAW_RANGE: Radians = Degrees(28.0).to_radians(); // controller swing (each way) that spans the whole screen width
+const PITCH_RANGE: Radians = Degrees(30.0).to_radians();
 const PITCH_BIAS: f64 = 0.0; // keep 0: a recenter must put the hand exactly in the middle of the screen
 const EDGE_THRESHOLD: f64 = 0.999; // pointer value that counts as pinned at the screen edge
 const POINTER_LIMIT: f64 = 0.95; // Dolphin drops each IR dot that leaves its camera frame; at +-1 one dot is already on the edge
@@ -46,7 +48,7 @@ impl Projector {
         &mut self,
         screen: &Screen,
         direction: Vec3,
-        delta_seconds: f64,
+        delta: Duration,
     ) -> Projection {
         let depth = screen.depth(direction);
         let is_behind_screen = depth < MIN_DEPTH; // aimed away from the screen: no hit point, so the pointer stays put
@@ -58,10 +60,8 @@ impl Projector {
             };
         }
         let [raw_x, raw_y] = screen.hit(direction, depth);
-        let filtered_x = self.filter_x.filter(raw_x / YAW_RANGE.tan(), delta_seconds);
-        let filtered_y = self
-            .filter_y
-            .filter(raw_y / PITCH_RANGE.tan(), delta_seconds);
+        let filtered_x = self.filter_x.filter(raw_x / YAW_RANGE.tan(), delta);
+        let filtered_y = self.filter_y.filter(raw_y / PITCH_RANGE.tan(), delta);
         Projection {
             position: PointerPosition {
                 x: filtered_x.clamp(-POINTER_LIMIT, POINTER_LIMIT),

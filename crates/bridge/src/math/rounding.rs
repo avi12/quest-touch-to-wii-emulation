@@ -10,7 +10,7 @@ pub fn round_hundredths(value: f64) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use super::round_hundredths;
+    use crate::math::round_hundredths;
 
     #[test]
     fn rounds_halves_up_like_javascript() {

@@ -1,5 +1,5 @@
-use super::vector::{add, dot, scale};
-use super::{Mat3, Vec3};
+use crate::math::vector::{add, dot, scale};
+use crate::math::{Mat3, Vec3};
 
 /// `matrix * vector`.
 #[must_use]
@@ -23,7 +23,8 @@ pub(crate) fn multiply_by_transpose(matrix: Mat3, other: Mat3) -> Mat3 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::math::Mat3;
+    use crate::math::matrix::{multiply_by_transpose, multiply_matrix, multiply_transposed};
 
     const SAMPLE: Mat3 = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]];
 

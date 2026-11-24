@@ -1,4 +1,5 @@
 use std::f64::consts::TAU;
+use std::time::Duration;
 
 const DEFAULT_MIN_CUTOFF: f64 = 0.8;
 const DEFAULT_BETA: f64 = 0.6;
@@ -54,7 +55,9 @@ impl OneEuro {
         self.derivative = 0.0;
     }
 
-    pub fn filter(&mut self, value: f64, delta_seconds: f64) -> f64 {
+    /// Smooths `value`, sampled `delta` after the previous one.
+    pub fn filter(&mut self, value: f64, delta: Duration) -> f64 {
+        let delta_seconds = delta.as_secs_f64();
         let Some(previous) = self.value else {
             self.value = Some(value);
             return value;
@@ -71,9 +74,12 @@ impl OneEuro {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::time::Duration;
 
-    const STEP_SECONDS: f64 = 0.004;
+    use crate::math::{OneEuro, OneEuroOptions};
+
+    const STEP: Duration = Duration::from_millis(4);
+    const FIRST_SAMPLE: f64 = 0.5;
     const TOLERANCE: f64 = 1e-12;
     // From src/math.ts: filter(0), then filter(1) twice, at 4 ms steps.
     const GOLDEN_SECOND: f64 = 0.101_149_041_316_574_08;
@@ -82,7 +88,7 @@ mod tests {
     #[test]
     fn first_sample_passes_through_and_reset_clears() {
         let mut filter = OneEuro::default();
-        assert_eq!(filter.filter(0.5, STEP_SECONDS), 0.5);
+        assert_eq!(filter.filter(FIRST_SAMPLE, STEP), 0.5);
         assert_eq!(filter.value(), Some(0.5));
         filter.reset();
         assert_eq!(filter.value(), None);
@@ -91,9 +97,9 @@ mod tests {
     #[test]
     fn matches_typescript_on_a_step() {
         let mut filter = OneEuro::new(OneEuroOptions::default());
-        filter.filter(0.0, STEP_SECONDS);
-        let second = filter.filter(1.0, STEP_SECONDS);
-        let third = filter.filter(1.0, STEP_SECONDS);
+        filter.filter(0.0, STEP);
+        let second = filter.filter(1.0, STEP);
+        let third = filter.filter(1.0, STEP);
         assert!((second - GOLDEN_SECOND).abs() < TOLERANCE, "{second}");
         assert!((third - GOLDEN_THIRD).abs() < TOLERANCE, "{third}");
     }

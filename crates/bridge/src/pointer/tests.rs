@@ -1,10 +1,12 @@
 //! Golden values from running src/pointer.ts on the same frames.
 
-use super::{Pointer, PointerInput};
+use std::time::Duration;
+
 use crate::math::rotation_from_angles;
+use crate::pointer::{CandidateStep, Pointer, PointerInput};
 
 const TOLERANCE: f64 = 1e-9;
-const FRAME_SECONDS: f64 = 0.004;
+const FRAME: Duration = Duration::from_millis(4);
 
 /// yaw, pitch, roll, thumbstick click.
 const FRAMES: [(f64, f64, f64, bool); 6] = [
@@ -61,21 +63,28 @@ const EXPECTED_BASIS: [[f64; 3]; 3] = [
 #[test]
 fn matches_typescript_frame_by_frame() {
     let mut pointer = Pointer::new();
-    for (index, ((yaw, pitch, roll, click), expected)) in FRAMES.iter().zip(EXPECTED).enumerate() {
+    for (i_frame, ((yaw, pitch, roll, click), expected)) in FRAMES.iter().zip(EXPECTED).enumerate()
+    {
         let update = pointer.update(&PointerInput {
             rotation: rotation_from_angles(*yaw, *pitch, *roll),
             is_click_pressed: *click,
-            delta_seconds: FRAME_SECONDS,
-            now_seconds: f64::from(u8::try_from(index).unwrap()) * FRAME_SECONDS,
+            delta: FRAME,
+            now: FRAME * u32::try_from(i_frame).unwrap(),
         });
-        let (x, y, did_recenter, is_aimed_away, facing) = expected;
-        assert!((update.position.x - x).abs() < TOLERANCE, "frame {index} x");
-        assert!((update.position.y - y).abs() < TOLERANCE, "frame {index} y");
-        assert_eq!(update.did_recenter, did_recenter, "frame {index}");
-        assert_eq!(update.is_aimed_away, is_aimed_away, "frame {index}");
+        let (x, y, has_recentered, is_aimed_away, facing) = expected;
+        assert!(
+            (update.position.x - x).abs() < TOLERANCE,
+            "frame {i_frame} x"
+        );
+        assert!(
+            (update.position.y - y).abs() < TOLERANCE,
+            "frame {i_frame} y"
+        );
+        assert_eq!(update.has_recentered, has_recentered, "frame {i_frame}");
+        assert_eq!(update.is_aimed_away, is_aimed_away, "frame {i_frame}");
         assert!(
             (update.facing - facing).abs() < TOLERANCE,
-            "frame {index} facing"
+            "frame {i_frame} facing"
         );
     }
     for (row, expected_row) in pointer.basis().iter().zip(EXPECTED_BASIS) {
@@ -88,13 +97,20 @@ fn matches_typescript_frame_by_frame() {
 #[test]
 fn cycling_candidates_wraps_and_recenters() {
     let mut pointer = Pointer::new();
-    assert_eq!(pointer.cycle_candidate(2).name, "measured twist axis");
-    assert_eq!(pointer.cycle_candidate(-1).name, "Meta aim ray reversed");
+    pointer.cycle_candidate(CandidateStep::Next);
+    assert_eq!(
+        pointer.cycle_candidate(CandidateStep::Next).name,
+        "measured twist axis"
+    );
+    assert_eq!(
+        pointer.cycle_candidate(CandidateStep::Previous).name,
+        "Meta aim ray reversed"
+    );
     let update = pointer.update(&PointerInput {
         rotation: rotation_from_angles(0.0, 0.0, 0.0),
         is_click_pressed: false,
-        delta_seconds: FRAME_SECONDS,
-        now_seconds: 0.0,
+        delta: FRAME,
+        now: Duration::ZERO,
     });
-    assert!(update.did_recenter);
+    assert!(update.has_recentered);
 }

@@ -6,6 +6,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::path::PathBuf;
 
+use dsu::Port;
 use openvr_sys::Hand;
 
 const PORT_VAR: &str = "BRIDGE_PORT";
@@ -14,17 +15,23 @@ const HAND_VAR: &str = "BRIDGE_HAND";
 const POINTER_TEST_VAR: &str = "PTR_TEST";
 /// File to stream controller movement, pointer and sensors to (JSON lines).
 const TELEMETRY_VAR: &str = "BRIDGE_TELEMETRY";
-const DEFAULT_PORT: u16 = 26760;
-const MIN_PORT: u16 = 1;
+
+/// Where the pointer comes from.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PointerSource {
+    /// Where the controller aims.
+    Controller,
+    /// The `PTR_TEST` diagnostic: known values in turn, ignoring the controller.
+    Sweep,
+}
 
 /// The validated settings of one bridge instance.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Config {
-    pub port: u16,
+    pub port: Port,
     /// The controller this bridge reads; `Left` is the second instance (Wii Remote 2).
     pub hand: Hand,
-    pub is_player2: bool,
-    pub is_pointer_test: bool,
+    pub pointer_source: PointerSource,
     pub telemetry_path: Option<PathBuf>,
 }
 
@@ -57,6 +64,12 @@ pub fn hand_name(hand: Hand) -> &'static str {
 }
 
 impl Config {
+    /// This bridge is the second instance: the left controller is Wii Remote 2.
+    #[must_use]
+    pub fn is_player2(&self) -> bool {
+        self.hand == Hand::Left
+    }
+
     /// Reads the process environment.
     pub fn from_env() -> Result<Self, ConfigError> {
         Self::from_lookup(|name| env::var(name))
@@ -75,36 +88,41 @@ impl Config {
                 received: raw.to_string_lossy().into_owned(),
             }),
         };
-        let port = read(PORT_VAR)?.map_or(Ok(DEFAULT_PORT), |raw| parse_port(&raw))?;
+        let port = read(PORT_VAR)?.map_or(Ok(Port::DEFAULT), |raw| parse_port(&raw))?;
         let hand = read(HAND_VAR)?.map_or(Ok(Hand::Right), |raw| parse_hand(&raw))?;
         // Like the TypeScript `Boolean(...)` / truthiness checks: set but empty counts as unset.
         let is_pointer_test = read(POINTER_TEST_VAR)?.is_some_and(|raw| !raw.is_empty());
+        let pointer_source = if is_pointer_test {
+            PointerSource::Sweep
+        } else {
+            PointerSource::Controller
+        };
         let telemetry_path = read(TELEMETRY_VAR)?
             .filter(|raw| !raw.is_empty())
             .map(PathBuf::from);
         Ok(Self {
             port,
             hand,
-            is_player2: hand == Hand::Left,
-            is_pointer_test,
+            pointer_source,
             telemetry_path,
         })
     }
 }
 
 /// A whole number 1..65535, written as `Number()` reads it (surrounding blanks ignored).
-fn parse_port(raw: &str) -> Result<u16, ConfigError> {
+fn parse_port(raw: &str) -> Result<Port, ConfigError> {
     let invalid = || ConfigError {
         variable: PORT_VAR,
         expected: "an integer from 1 to 65535",
         received: raw.to_owned(),
     };
     let value: f64 = raw.trim().parse().map_err(|_err| invalid())?;
-    if value.fract() != 0.0 {
+    let is_whole = value.fract() == 0.0;
+    if !is_whole {
         return Err(invalid());
     }
-    num_traits::ToPrimitive::to_u16(&value)
-        .filter(|port| *port >= MIN_PORT)
+    numeric::truncate_to::<u16>(value)
+        .and_then(Port::new)
         .ok_or_else(invalid)
 }
 
@@ -120,73 +138,4 @@ fn parse_hand(raw: &str) -> Result<Hand, ConfigError> {
 }
 
 #[cfg(test)]
-mod tests {
-    use std::collections::HashMap;
-
-    use super::*;
-
-    fn parse(pairs: &[(&str, &str)]) -> Result<Config, ConfigError> {
-        let table: HashMap<String, String> = pairs
-            .iter()
-            .map(|(name, value)| ((*name).to_owned(), (*value).to_owned()))
-            .collect();
-        Config::from_lookup(|name| table.get(name).cloned().ok_or(VarError::NotPresent))
-    }
-
-    #[test]
-    fn defaults_to_the_right_controller_on_26760() {
-        let config = parse(&[]).unwrap();
-        assert_eq!(config.port, 26760);
-        assert_eq!(config.hand, Hand::Right);
-        assert!(!config.is_player2 && !config.is_pointer_test);
-        assert_eq!(config.telemetry_path, None);
-    }
-
-    #[test]
-    fn reads_the_second_instance() {
-        let config = parse(&[
-            ("BRIDGE_PORT", " 26761 "),
-            ("BRIDGE_HAND", "left"),
-            ("PTR_TEST", "1"),
-            ("BRIDGE_TELEMETRY", "t.jsonl"),
-        ])
-        .unwrap();
-        assert_eq!((config.port, config.hand), (26761, Hand::Left));
-        assert!(config.is_player2 && config.is_pointer_test);
-        assert_eq!(config.telemetry_path, Some(PathBuf::from("t.jsonl")));
-    }
-
-    #[test]
-    fn empty_flags_count_as_unset() {
-        let config = parse(&[("PTR_TEST", ""), ("BRIDGE_TELEMETRY", "")]).unwrap();
-        assert!(!config.is_pointer_test);
-        assert_eq!(config.telemetry_path, None);
-    }
-
-    #[test]
-    fn rejects_what_zod_rejects() {
-        for port in ["0", "65536", "1.5", "abc", "", "-1"] {
-            let error = parse(&[("BRIDGE_PORT", port)]).unwrap_err();
-            assert_eq!(
-                (error.variable, error.received.as_str()),
-                ("BRIDGE_PORT", port)
-            );
-        }
-        for hand in ["Left", "", "both"] {
-            assert_eq!(
-                parse(&[("BRIDGE_HAND", hand)]).unwrap_err().variable,
-                "BRIDGE_HAND"
-            );
-        }
-        assert_eq!(parse(&[("BRIDGE_PORT", "1e3")]).unwrap().port, 1000);
-    }
-
-    #[test]
-    fn error_names_the_variable_and_value() {
-        let error = parse(&[("BRIDGE_PORT", "abc")]).unwrap_err();
-        assert_eq!(
-            error.to_string(),
-            "BRIDGE_PORT must be an integer from 1 to 65535, got \"abc\""
-        );
-    }
-}
+mod tests;

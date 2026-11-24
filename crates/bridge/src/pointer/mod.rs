@@ -9,7 +9,7 @@ mod sweep;
 #[cfg(test)]
 mod tests;
 
-pub use candidates::{CANDIDATES, Candidate, DEFAULT_CANDIDATE_INDEX};
+pub use candidates::{CANDIDATES, Candidate, CandidateStep, DEFAULT_CANDIDATE_INDEX};
 pub use sweep::sweep_pointer;
 
 use basis::{default_up, make_basis, upright_basis};
@@ -17,6 +17,8 @@ use candidates::step_candidate;
 use projection::{MIN_DEPTH, Projector};
 use recenter::{EdgeHold, EdgeSample};
 use screen::Screen;
+
+use std::time::Duration;
 
 use crate::math::{Mat3, Vec3, multiply_matrix, normalize};
 
@@ -34,16 +36,18 @@ pub struct PointerInput {
     pub rotation: Mat3,
     /// Thumbstick click: a fresh press recenters.
     pub is_click_pressed: bool,
-    pub delta_seconds: f64,
+    /// Time since the previous update.
+    pub delta: Duration,
     /// Monotonic clock, for the edge-hold auto-recenter.
-    pub now_seconds: f64,
+    pub now: Duration,
 }
 
 /// One frame's output of [`Pointer::update`].
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PointerUpdate {
     pub position: PointerPosition,
-    pub did_recenter: bool,
+    /// This update recentred the pointer (first sample, stick click, or edge hold).
+    pub has_recentered: bool,
     /// Aimed too far from the screen to have a hit point; the caller keeps its last pointer.
     pub is_aimed_away: bool,
     /// Cosine between the aim and the screen's normal; low or negative means aimed away from the
@@ -64,7 +68,8 @@ pub struct Pointer {
     candidate_index: usize,
     screen: Screen,
     is_recenter_needed: bool,
-    was_click_pressed: bool,
+    /// The thumbstick click was held on the previous update.
+    is_click_held: bool,
     edge_hold: EdgeHold,
     projector: Projector,
 }
@@ -78,7 +83,7 @@ impl Default for Pointer {
             candidate_index: DEFAULT_CANDIDATE_INDEX,
             screen: Screen::default(),
             is_recenter_needed: true,
-            was_click_pressed: false,
+            is_click_held: false,
             edge_hold: EdgeHold::default(),
             projector: Projector::default(),
         }
@@ -102,9 +107,9 @@ impl Pointer {
         self.candidate_index
     }
 
-    /// Switches the pointing axis `step` candidates on (negative goes back) and recenters on the
-    /// next update. Returns the candidate now in use, for the caller to log.
-    pub fn cycle_candidate(&mut self, step: isize) -> Candidate {
+    /// Switches the pointing axis one candidate on or back and recenters on the next update.
+    /// Returns the candidate now in use, for the caller to log.
+    pub fn cycle_candidate(&mut self, step: CandidateStep) -> Candidate {
         self.candidate_index = step_candidate(self.candidate_index, step);
         let candidate = CANDIDATES
             .get(self.candidate_index)
@@ -122,25 +127,23 @@ impl Pointer {
         let direction = multiply_matrix(input.rotation, self.aim);
         let edge = EdgeSample {
             direction,
-            delta_seconds: input.delta_seconds,
-            now_seconds: input.now_seconds,
+            delta: input.delta,
+            now: input.now,
             is_pinned: self.projector.is_pinned(),
         };
         if self.edge_hold.is_pinned_and_still(&edge) {
             self.is_recenter_needed = true;
         }
-        let is_fresh_click = input.is_click_pressed && !self.was_click_pressed;
-        let did_recenter = self.is_recenter_needed || is_fresh_click;
-        self.was_click_pressed = input.is_click_pressed;
-        if did_recenter {
+        let is_fresh_click = input.is_click_pressed && !self.is_click_held;
+        let has_recentered = self.is_recenter_needed || is_fresh_click;
+        self.is_click_held = input.is_click_pressed;
+        if has_recentered {
             self.recenter(input.rotation, direction);
         }
-        let projection = self
-            .projector
-            .project(&self.screen, direction, input.delta_seconds);
+        let projection = self.projector.project(&self.screen, direction, input.delta);
         PointerUpdate {
             position: projection.position,
-            did_recenter,
+            has_recentered,
             is_aimed_away: projection.facing < MIN_DEPTH,
             facing: projection.facing,
             direction,

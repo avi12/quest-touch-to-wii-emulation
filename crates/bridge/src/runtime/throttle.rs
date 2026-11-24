@@ -6,13 +6,13 @@ const REPORT_INTERVAL: Duration = Duration::from_millis(3000);
 
 /// Lets one report through per [`REPORT_INTERVAL`]; the first one at once.
 #[derive(Clone, Copy, Debug, Default)]
-pub(super) struct Throttle {
+pub(crate) struct Throttle {
     last_at: Option<Instant>,
 }
 
 impl Throttle {
     /// True when a report is due; it then counts as made.
-    pub(super) fn is_due(&mut self, now: Instant) -> bool {
+    pub(crate) fn is_due(&mut self, now: Instant) -> bool {
         let is_due = self
             .last_at
             .is_none_or(|last_at| now.duration_since(last_at) > REPORT_INTERVAL);
@@ -25,7 +25,9 @@ impl Throttle {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::time::{Duration, Instant};
+
+    use crate::runtime::throttle::{REPORT_INTERVAL, Throttle};
 
     #[test]
     fn reports_first_then_every_interval() {

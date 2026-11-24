@@ -7,13 +7,15 @@ use std::path::PathBuf;
 
 use openvr_sys::OpenVrError;
 
+use dsu::Port;
+
 /// A start-up failure; the loop itself only logs and carries on.
 #[derive(Debug)]
 pub enum BridgeError {
     /// `SteamVR` is not running, or the headset is not streaming yet.
     OpenVr(OpenVrError),
     /// The DSU port is taken (another bridge on it?).
-    Bind { port: u16, source: io::Error },
+    Bind { port: Port, source: io::Error },
     /// The telemetry file could not be opened for appending.
     Telemetry { path: PathBuf, source: io::Error },
 }
@@ -26,7 +28,11 @@ impl Display for BridgeError {
                 "{error}; start SteamVR with the headset connected, then run the bridge again"
             ),
             Self::Bind { port, source } => {
-                write!(formatter, "cannot serve DSU on UDP {port}: {source}")
+                write!(
+                    formatter,
+                    "cannot serve DSU on UDP {}: {source}",
+                    port.get()
+                )
             }
             Self::Telemetry { path, source } => {
                 write!(

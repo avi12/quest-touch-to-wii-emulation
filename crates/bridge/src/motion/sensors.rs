@@ -1,9 +1,11 @@
-use super::swing::measure_swing;
-use super::{Motion, Sensors};
 use crate::math::{
-    Mat3, Vec3, WORLD_UP, add, multiply_matrix, multiply_transposed, radians_to_degrees, scale,
+    DegreesPerSecond, Gravities, Mat3, Radians, Vec3, WORLD_UP, add, multiply_matrix,
+    multiply_transposed, scale,
 };
+use crate::motion::swing::measure_swing;
+use crate::motion::{Motion, Sensors};
 
+/// Standard gravity, m/s^2.
 const GRAVITY: f64 = 9.806_65;
 const FLIP_ACCEL: Vec3 = [1.0, 1.0, 1.0]; // tweak if Dolphin shows an axis inverted
 const FLIP_GYRO: Vec3 = [1.0, 1.0, 1.0];
@@ -29,14 +31,14 @@ fn roll_weight(gravity: Vec3) -> f64 {
 /// axis, yaw/pitch rates are dropped, swings stay.
 #[must_use]
 pub fn to_sensors(rotation: Mat3, basis: Mat3, motion: Motion) -> Sensors {
-    let [accel_x, accel_y, accel_z] = motion.acceleration;
+    let [accel_x, accel_y, accel_z] = motion.acceleration.0;
     let specific_force = scale(
         multiply_transposed(rotation, [accel_x, accel_y + GRAVITY, accel_z]),
         1.0 / GRAVITY,
     );
     let angular_in_wiimote =
-        to_wiimote_frame(basis, multiply_transposed(rotation, motion.angular_rate));
-    let roll_rate = radians_to_degrees(angular_in_wiimote[1]);
+        to_wiimote_frame(basis, multiply_transposed(rotation, motion.angular_rate.0));
+    let roll_rate = Radians(angular_in_wiimote[1]).to_degrees().0;
     let gravity_in_wiimote = to_wiimote_frame(basis, multiply_transposed(rotation, WORLD_UP));
     let weight = roll_weight(gravity_in_wiimote);
     let roll = gravity_in_wiimote[0].atan2(gravity_in_wiimote[2]) * ROLL_GAIN * weight;
@@ -44,16 +46,16 @@ pub fn to_sensors(rotation: Mat3, basis: Mat3, motion: Motion) -> Sensors {
     let swing = measure_swing(to_wiimote_frame(basis, specific_force), gravity_in_wiimote);
     let [right, forward, upward] = add(roll_only_gravity, swing.acceleration);
     Sensors {
-        accel: [
+        accel: Gravities([
             -right * FLIP_ACCEL[0],
             -upward * FLIP_ACCEL[1],
             forward * FLIP_ACCEL[2],
-        ],
+        ]),
         // no roll rate during a swing: Dolphin would integrate it into a lasting tilt
-        gyro: [
+        gyro: DegreesPerSecond([
             0.0,
             0.0,
             roll_rate * weight * (1.0 - swing.factor) * FLIP_GYRO[2],
-        ],
+        ]),
     }
 }

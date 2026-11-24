@@ -3,34 +3,34 @@
 use std::time::{Duration, Instant};
 
 use dsu::PadState;
-use openvr_sys::{Button, DevicePose, Hand};
+use openvr_sys::{Button, DeviceIndex, DevicePose, Hand};
 
-use super::clock::epoch_ms;
-use super::hands::Output;
-use super::{Bridge, STEP_SECONDS};
 use crate::config::hand_name;
 use crate::input::{Controllers, PadInput, build_pad};
-use crate::math::round_hundredths;
+use crate::math::{MetresPerSecond, RadiansPerSecond, Vec3, round_hundredths};
 use crate::motion::{PoseSample, Sensors, to_sensors};
 use crate::pointer::{PointerInput, PointerPosition};
+use crate::runtime::clock::wall_clock;
+use crate::runtime::hands::Output;
+use crate::runtime::{Bridge, STEP};
 use crate::session::TelemetrySample;
 
 /// How long Dolphin's IMU "Recenter" (the PS button) is held after a recenter.
 const RECENTER_HOLD: Duration = Duration::from_millis(300);
 /// The pad repeated while the controller is lost carries no rotation.
-const NO_GYRO: [f64; 3] = [0.0; 3];
+const NO_GYRO: Vec3 = [0.0; 3];
 
 impl Bridge {
     /// One pad update; false when the controller is not tracked.
-    pub(super) fn tick(&mut self) -> bool {
+    pub(crate) fn tick(&mut self) -> bool {
         let poses = self.open_vr.poses();
-        let pose_of = |index: Option<u32>| {
+        let pose_of = |index: Option<DeviceIndex>| {
             index
-                .and_then(|index| poses.get(index))
-                .filter(|pose| pose.valid)
+                .map(|index| poses.get(index))
+                .filter(|pose| pose.is_valid)
         };
         let right_index = self.open_vr.controller_index(self.config.hand);
-        let left_index = if self.config.is_player2 {
+        let left_index = if self.config.is_player2() {
             None
         } else {
             self.open_vr.controller_index(Hand::Left)
@@ -40,7 +40,7 @@ impl Bridge {
             return false;
         };
         let is_left_tracked = pose_of(left_index).is_some();
-        if !self.config.is_player2 {
+        if !self.config.is_player2() {
             self.second_controller
                 .update(is_left_tracked, Instant::now());
         }
@@ -59,10 +59,10 @@ impl Bridge {
         let pointer = self.pointer.update(&PointerInput {
             rotation: pose.rot,
             is_click_pressed: left.is_down(Button::Click) || right.is_down(Button::Click),
-            delta_seconds: STEP_SECONDS,
-            now_seconds: self.now_seconds(),
+            delta: STEP,
+            now: self.elapsed(),
         });
-        if pointer.did_recenter {
+        if pointer.has_recentered {
             println!("RECENTER");
             self.server.recenter_until = Instant::now() + RECENTER_HOLD;
         }
@@ -71,13 +71,13 @@ impl Bridge {
             pointer: held,
             sensors,
         });
-        let now_epoch_ms = epoch_ms();
+        let now = wall_clock();
         let pad = build_pad(&PadInput {
             controllers,
-            is_left_attached: !self.config.is_player2 && self.is_left_enabled && is_left_tracked,
+            is_left_attached: !self.config.is_player2() && self.is_left_enabled && is_left_tracked,
             pointer: output.pointer,
             sensors: output.sensors,
-            now_epoch_ms,
+            wall_clock: now,
         });
         self.last_pad = Some(PadState {
             gyro: NO_GYRO,
@@ -88,12 +88,12 @@ impl Bridge {
             direction: pointer.direction,
             pointer: output.pointer,
             sensors: output.sensors,
-            did_recenter: pointer.did_recenter,
+            has_recentered: pointer.has_recentered,
             rotation: pose.rot,
             facing: pointer.facing,
             is_marked: right.is_down(Button::Secondary),
         };
-        self.record(&sample, now_epoch_ms);
+        self.record(&sample, now);
         if self.report.is_due(Instant::now()) {
             self.log_status(is_left_tracked, output.pointer);
         }
@@ -104,15 +104,15 @@ impl Bridge {
         let motion = self.motion.update(&PoseSample {
             position: pose.pos,
             rotation: pose.rot,
-            velocity: pose.velocity,
-            angular_velocity: pose.angular_velocity,
-            timestamp_seconds: self.now_seconds(),
+            velocity: MetresPerSecond(pose.velocity),
+            angular_velocity: RadiansPerSecond(pose.angular_velocity),
+            timestamp: self.elapsed(),
         });
         to_sensors(pose.rot, self.pointer.basis(), motion)
     }
 
-    fn record(&mut self, sample: &TelemetrySample, now_epoch_ms: u64) {
-        if let Err(error) = self.telemetry.record(sample, now_epoch_ms) {
+    fn record(&mut self, sample: &TelemetrySample, wall_clock: Duration) {
+        if let Err(error) = self.telemetry.record(sample, wall_clock) {
             eprintln!("telemetry write failed: {error}");
         }
     }

@@ -1,4 +1,4 @@
-use super::Vec3;
+use crate::math::{Radians, Vec3};
 
 /// `SteamVR`'s world up axis.
 pub const WORLD_UP: Vec3 = [0.0, 1.0, 0.0];
@@ -56,19 +56,28 @@ pub fn remove_component(vector: Vec3, axis: Vec3) -> Vec3 {
     subtract(vector, scale(axis, dot(vector, axis)))
 }
 
-/// Angle in radians between two non-zero vectors of any length.
+/// Angle between two non-zero vectors of any length.
 #[must_use]
-pub fn angle_between(first: Vec3, second: Vec3) -> f64 {
-    (dot(first, second) / (norm(first) * norm(second)))
-        .clamp(-1.0, 1.0)
-        .acos()
+pub fn angle_between(first: Vec3, second: Vec3) -> Radians {
+    Radians(
+        (dot(first, second) / (norm(first) * norm(second)))
+            .clamp(-1.0, 1.0)
+            .acos(),
+    )
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::f64::consts::FRAC_PI_2;
+
+    use crate::math::{
+        Vec3, WORLD_UP, add, angle_between, cross, dot, norm, normalize, remove_component, scale,
+        subtract,
+    };
 
     const TOLERANCE: f64 = 1e-12;
+    const ALONG_X: Vec3 = [2.0, 0.0, 0.0];
+    const ALONG_Z: Vec3 = [0.0, 0.0, 5.0];
 
     #[test]
     fn basic_operations() {
@@ -92,7 +101,7 @@ mod tests {
 
     #[test]
     fn angle_between_ignores_length() {
-        let angle = angle_between([2.0, 0.0, 0.0], [0.0, 0.0, 5.0]);
-        assert!((angle - std::f64::consts::FRAC_PI_2).abs() < TOLERANCE);
+        let angle = angle_between(ALONG_X, ALONG_Z);
+        assert!((angle.0 - FRAC_PI_2).abs() < TOLERANCE);
     }
 }

@@ -6,4 +6,4 @@ mod hotkeys;
 
 pub use buttons::{PadInput, build_pad};
 pub use controls::{Controllers, Controls};
-pub use hotkeys::{CandidateStep, HotkeyEvents, Hotkeys};
+pub use hotkeys::{HotkeyEvents, Hotkeys};
