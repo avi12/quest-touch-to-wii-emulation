@@ -43,9 +43,9 @@ jobs:
           corepack enable
           pnpm install --frozen-lockfile
           pnpm --dir apps/guide build
-          Compress-Archive -Path target/guide/* -DestinationPath target/touch_dsu-setup-guide.zip
+          Compress-Archive -Path target/guide/* -DestinationPath target/touch-dolphin.zip
 
       - name: Attach to the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload ${{ github.event.release.tag_name }} target/release/touch_dsu.exe target/touch_dsu-setup-guide.zip --clobber
+        run: gh release upload ${{ github.event.release.tag_name }} target/release/touch_dsu.exe target/touch-dolphin.zip --clobber

@@ -15,7 +15,7 @@ The headset only _tracks_ the controllers. SteamVR hands their poses to a small 
 
 ## Download
 
-**Easiest: the setup guide.** Download `touch_dsu-setup-guide.zip` from the [latest release](https://github.com/avi12/quest-touch-to-wii-emulation/releases/latest), unzip it anywhere and run **Setup Guide.exe**. It walks you through every step and checks each one: connecting the headset and starting SteamVR, setting up Dolphin (backing up your config first), starting the bridges, and opening the Wii Menu with your game already in the drive. It is a native Windows app built with [winui-svelte](https://www.npmjs.com/package/winui-svelte).
+**The app (recommended).** Download `touch-dolphin.zip` from the [latest release](https://github.com/avi12/quest-touch-to-wii-emulation/releases/latest), unzip it anywhere and run **Touch Dolphin.exe**. It walks you through every step and checks each one: connecting the headset and starting SteamVR, setting up Dolphin (backing up your config first), and opening the Wii Menu with your game already in the drive. The bridges start on their own once SteamVR is up. Closing the window keeps them running in the system tray (the ring icon); **Quit** stops everything. It is a native Windows app built with [winui-svelte](https://www.npmjs.com/package/winui-svelte).
 
 **Just the bridge:** `touch_dsu.exe` from the same release. Put it in a folder of its own and double-click it. It starts both bridges (right controller = Wii Remote 1 on UDP 26760, left = Wii Remote 2 on 26761). Close its window to stop them. You still need the Dolphin config from `config/` (see [Dolphin setup](#dolphin-setup)).
 
