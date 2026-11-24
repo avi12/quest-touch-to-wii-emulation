@@ -2,6 +2,7 @@
 
 mod buttons;
 mod controls;
+mod deadzone;
 mod hotkeys;
 
 pub use buttons::{PadInput, build_pad};

@@ -2,6 +2,8 @@
 
 use openvr_sys::{Button, ControllerState};
 
+use crate::input::deadzone::remove_dead_zone;
+
 /// The buttons a [`Controls`] remembers, in bit order.
 const BUTTONS: [Button; 4] = [
     Button::Primary,
@@ -55,7 +57,7 @@ impl From<&ControllerState> for Controls {
             .filter(|button| state.is_down(*button))
             .fold(0, |held, button| held | bit(button));
         Self {
-            stick: state.stick,
+            stick: remove_dead_zone(state.stick),
             trig: state.trig,
             grip: state.grip,
             held,
