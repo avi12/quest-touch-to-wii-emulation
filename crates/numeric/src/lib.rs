@@ -1,8 +1,10 @@
-//! Checked float-to-integer conversion.
+//! Numbers: checked float-to-integer conversion, and JavaScript-compatible formatting.
 //!
 //! Rust has no `TryFrom<f64>` for integers, and the workspace denies `as`; this crate is the one
 //! place that casts, after checking the value is finite and in range. Narrower integers follow with
 //! the standard `TryFrom<i64>`.
+
+pub mod format;
 
 /// The smallest `f64` that is out of `i64` range (2^63); `i64::MIN` (−2^63) itself is exact.
 const I64_LIMIT: f64 = 9_223_372_036_854_775_808.0;

@@ -1,5 +1,0 @@
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "extends": ["./node_modules/oxlint-config-avi12/oxlint.json"],
-  "ignorePatterns": ["**/node_modules/**", "target/**", ".verify/**"]
-}

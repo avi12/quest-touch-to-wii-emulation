@@ -1,4 +1,4 @@
-//! Number formatting that matches JavaScript's, so the tools print what the TypeScript ones did.
+//! Number formatting that matches JavaScript's, so telemetry and the tools print what the TypeScript bridge did.
 
 /// Enough fraction digits to print any `f64` exactly.
 const EXACT_DIGITS: usize = 1100;
@@ -9,7 +9,8 @@ const EXPONENT_BELOW: f64 = 1e-6;
 
 /// `Number.prototype.toFixed`: rounds the exact value half away from zero.
 pub fn to_fixed(value: f64, digits: usize) -> String {
-    if !value.is_finite() || value.abs() >= EXPONENT_ABOVE {
+    let is_exponent_form = !value.is_finite() || value.abs() >= EXPONENT_ABOVE;
+    if is_exponent_form {
         return js_number(value);
     }
     let exact = format!("{:.EXACT_DIGITS$}", value.abs());
@@ -25,9 +26,10 @@ pub fn to_fixed(value: f64, digits: usize) -> String {
     }
     let split = decimal.len().saturating_sub(digits);
     let (integer, fractional) = decimal.split_at(split);
-    let sign = if value < 0.0 { "-" } else { "" };
+    let sign = sign_of(value);
     let integer = String::from_utf8_lossy(integer);
-    if digits == 0 {
+    let is_whole = digits == 0;
+    if is_whole {
         return format!("{sign}{integer}");
     }
     format!("{sign}{integer}.{}", String::from_utf8_lossy(fractional))
@@ -36,7 +38,8 @@ pub fn to_fixed(value: f64, digits: usize) -> String {
 /// Adds one to the last digit of an ASCII decimal, carrying as needed.
 fn increment(decimal: &mut Vec<u8>) {
     for digit in decimal.iter_mut().rev() {
-        if *digit == b'9' {
+        let is_nine = *digit == b'9';
+        if is_nine {
             *digit = b'0';
             continue;
         }
@@ -46,16 +49,25 @@ fn increment(decimal: &mut Vec<u8>) {
     decimal.insert(0, b'1');
 }
 
+/// `-` for a negative value, nothing otherwise (negative zero included).
+fn sign_of(value: f64) -> &'static str {
+    let is_negative = value < 0.0;
+    if is_negative {
+        return "-";
+    }
+    ""
+}
+
 /// `String(number)`: the shortest round-trip form, `0` for negative zero.
 pub fn js_number(value: f64) -> String {
     if value.is_nan() {
         return "NaN".to_owned();
     }
     if value.is_infinite() {
-        let sign = if value < 0.0 { "-" } else { "" };
-        return format!("{sign}Infinity");
+        return format!("{}Infinity", sign_of(value));
     }
-    if value == 0.0 {
+    let is_zero = value == 0.0;
+    if is_zero {
         return "0".to_owned();
     }
     let magnitude = value.abs();
@@ -85,7 +97,7 @@ pub fn rounded_vector(values: &[f64], digits: usize) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::format::{js_number, rounded, rounded_vector, to_fixed};
 
     #[test]
     fn rounds_ties_away_from_zero_like_javascript() {

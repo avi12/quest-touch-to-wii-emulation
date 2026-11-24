@@ -1,6 +1,6 @@
 [package]
 name = "numeric"
-description = "Checked float-to-integer conversion, the one place the workspace converts with `as`"
+description = "Checked float-to-integer conversion (the one place the workspace uses `as`) and JavaScript-compatible number formatting"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
