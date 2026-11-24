@@ -1,2 +1,4 @@
+packages:
+  - apps/*
 allowBuilds:
-  koffi: true
+  "@microsoft/dynwinrt": true

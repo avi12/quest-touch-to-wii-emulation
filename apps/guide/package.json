@@ -1,0 +1,20 @@
+{
+  "name": "touch-dsu-guide",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Step-by-step setup guide for the Quest Touch to Dolphin bridge, as a native WinUI app",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node main.ts",
+    "build": "node build.ts"
+  },
+  "dependencies": {
+    "svelte": "5.57.3",
+    "vite": "^8.3.4",
+    "winui-svelte": "0.0.17"
+  },
+  "engines": {
+    "node": ">=26"
+  }
+}
