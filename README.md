@@ -13,9 +13,15 @@ flowchart LR
 
 The headset only _tracks_ the controllers. SteamVR hands their poses to a small Rust bridge, which pretends to be a DualShock-style pad with motion sensors (the DSU protocol Dolphin already understands). Nothing in Dolphin is patched.
 
+## Download
+
+Grab `touch_dsu.exe` from the [latest release](https://github.com/avi12/quest-touch-to-wii-emulation/releases/latest), put it in a folder of its own and double-click it. It starts both bridges (right controller = Wii Remote 1 on UDP 26760, left = Wii Remote 2 on 26761). Close its window to stop them.
+
+It **updates itself**: on every start it checks the latest GitHub release and, when there is a newer one, downloads it, swaps it in and restarts. Set `BRIDGE_NO_UPDATE=1` to skip that. Only release downloads update; builds from source never do. You still need the Dolphin config from `config/` (see [Dolphin setup](#dolphin-setup)).
+
 ## Requirements
 
-- Windows, Rust (stable, via rustup), Dolphin (tested on 2609b)
+- Windows, Dolphin (tested on 2609b); Rust (stable, via rustup) only to build from source
 - A Quest (tested: Quest 2) connected to the PC through **Air Link, Link or Virtual Desktop**, with SteamVR running
 - Nothing else: `openvr_api.dll` is loaded from the SteamVR install at run time, and the bridge has no third-party crates
 
@@ -98,10 +104,10 @@ Keep **Motion Simulation → Point** at Dolphin's defaults (Vertical Offset 10 c
 ## Layout
 
 ```
-crates/bridge       the bridge (binary touch_dsu): poses -> pointer, roll, swings, buttons -> DSU pad
+crates/bridge       the bridge (binary touch_dsu): poses -> pointer, roll, swings, buttons -> DSU pad; launcher and self-update
 crates/dsu          the DSU (Cemuhook) server, with Dolphin's packet quirks
 crates/openvr-sys   SteamVR's openvr_api.dll, loaded at run time (unsafe FFI lives only here and in win32-sys)
-crates/win32-sys    key state, beep, timer resolution
+crates/win32-sys    key state, beep, timer resolution, HTTPS through Windows' WinHTTP (for the updater)
 crates/geometry     Vec3 / Mat3, shared by every crate
 crates/numeric      the one checked float-to-integer conversion, JavaScript-style number formatting
 crates/tools        diagnostics: dsu_probe, list_devices, controller_buttons, controller_tip_pose, calibrate_pointing_axis, telemetry_tail
@@ -124,6 +130,7 @@ docs/how-it-works.md   the findings behind every design choice
 - `cargo run --release -p bridge` runs one bridge; `cargo test --workspace` runs the tests.
 - Lint as in pade. The rules live in plain Rust config (`[lints]` in each `Cargo.toml`, `clippy.toml`, `rustfmt.toml`, `deny.toml`), so cargo runs them directly: `cargo clippy --workspace --all-targets -- -D warnings`, `cargo fmt --all --check`, `cargo deny check`, `cargo machete`.
 - Node is used only for the lint tooling: `pnpm install` once, then `pnpm lint` / `pnpm lint:fix` run all of the above plus Markdown/JSON/YAML formatting, and `avi12-lint rust-config` regenerates the rule files from the shared `rust-config-avi12` preset. Exemptions live in `avi12-rust.local.toml`, each with a reason; never `#[allow]`.
+- Releases: bump `version` in `Cargo.toml`, commit, then publish a GitHub release tagged `vX.Y.Z`. `.github/workflows/release.yml` tests, builds `touch_dsu.exe` with `TOUCH_DSU_RELEASE=1` (which turns the updater on) and attaches it.
 - No third-party crates: small dependencies (CRC-32, DLL loading, Win32 calls, JSON) are written in the repo.
 - See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 

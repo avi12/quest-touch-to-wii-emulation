@@ -11,6 +11,8 @@ Bridge that lets Meta Quest Touch controllers act as Dolphin Wii Remotes. Read `
   - `crates/geometry` (`Vec3`, `Mat3`), `crates/numeric` (the one checked float→int cast; the only crate allowed `as`).
   - `crates/tools`: diagnostics, one bin each.
 - `scripts/start.ps1`, `stop.ps1`: run both bridges; PID file based.
+- `touch_dsu.exe` without `BRIDGE_HAND` = launcher (`launcher.rs`): self-update (`update/`, release builds only: `TOUCH_DSU_RELEASE=1` at compile time; `BRIDGE_NO_UPDATE=1` opts out), then both bridges as children. With `BRIDGE_HAND` set = one bridge (what `start.ps1` runs).
+- Releases: `.github/workflows/release.yml` builds and attaches the exe when a `vX.Y.Z` release is published; the tag must match `Cargo.toml`'s version.
 - `scripts/play.ps1`: SteamVR + bridges + Dolphin Wii Menu with the disc inserted (paths in gitignored `.play.json`).
 - `controller_buttons` (tools): live SteamVR button/stick/trigger state per controller; "no state" means SteamVR is withholding input (a headset menu has focus).
 - `config/`: Dolphin config for Wii Remote 1 and 2 (must be merged into Dolphin's config dir).
