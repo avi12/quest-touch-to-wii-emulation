@@ -64,7 +64,7 @@ Dolphin rewrites its config on exit, so **edit config files only while Dolphin i
 | `WiimoteNew.ini`                            | Merge `[Wiimote1]` and `[Wiimote2]` from `config/WiimoteNew.ini`                                   |
 | `Dolphin.ini`                               | Under `[Input]` set `BackgroundInput = True` so the game keeps input when another window has focus |
 
-In Dolphin, Controllers → Wii Remote 1 and 2 must be **Emulated Wii Remote**. The config sets **Point → Vertical Offset = 0**: there is no real sensor bar, and Dolphin's default 10 cm offset flips with the Wii's sensor-bar setting, which shifts the cursor off centre and puts the screen's top or bottom edge out of reach. Leave **Extension: None** unless a game needs a Nunchuk (Wii Sports asks you to unplug it).
+In Dolphin, Controllers → Wii Remote 1 and 2 must be **Emulated Wii Remote**. Leave **Extension: None** unless a game needs a Nunchuk (Wii Sports asks you to unplug it).
 
 ## Troubleshooting
 
