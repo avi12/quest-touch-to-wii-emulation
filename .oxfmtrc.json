@@ -12,6 +12,8 @@
   "sortImports": { "sortSideEffects": true },
   "ignorePatterns": [
     "continue-*.md",
+    "target/**",
+    ".verify/**",
     "**/node_modules/**",
     "**/dist/**",
     "**/build/**",

@@ -165,29 +165,16 @@ settings:
 importers:
 
   .:
-    dependencies:
-      koffi:
-        specifier: ^3.3.8
-        version: 3.3.8
-      zod:
-        specifier: ^4.6.7
-        version: 4.6.7
     devDependencies:
-      '@types/node':
-        specifier: ^26.6.6
-        version: 26.6.6
-      '@typescript/native-preview':
-        specifier: 7.0.0-dev.20260707.2
-        version: 7.0.0-dev.20260707.2
+      '@ast-grep/cli':
+        specifier: ^0.51.3
+        version: 0.51.3
+      ast-grep-rules-avi12:
+        specifier: github:avi12/lint-config#v0.11.0&path:/packages/ast-grep-rules
+        version: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/ast-grep-rules
       avi12-lint:
         specifier: github:avi12/lint-config#v0.11.0&path:/packages/avi12-lint
         version: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/avi12-lint
-      fallow:
-        specifier: 2.103.0
-        version: 2.103.0
-      fallow-config-avi12:
-        specifier: github:avi12/lint-config#v0.11.0&path:/packages/fallow-config
-        version: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/fallow-config(fallow@2.103.0)
       oxfmt:
         specifier: ^0.78.0
         version: 0.78.0
@@ -200,17 +187,74 @@ importers:
       oxlint-config-avi12:
         specifier: github:avi12/lint-config#v0.11.0&path:/packages/oxlint-config
         version: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxlint-config(eslint@10.14.0)(oxlint@1.90.0)(typescript@6.0.3)
-      oxlint-plugin-naming:
-        specifier: github:avi12/lint-config#v0.11.0&path:/packages/oxlint-plugin-naming
-        version: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxlint-plugin-naming(oxlint@1.90.0)
       rust-config-avi12:
         specifier: github:avi12/lint-config#v0.11.0&path:/packages/rust-config
         version: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/rust-config
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
 
 packages:
+
+  '@ast-grep/cli-darwin-arm64@0.51.3':
+    resolution: {integrity: sha512-IZW3KCIX2GNGcy/2JAIIfg6q6ubK3B7N1jd/uw7xcAOhE76bquooOYI+V1+r3QdCL3UXb5DK/quv9wNpxWdACg==}
+    engines: {node: '>= 20.0.0'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@ast-grep/cli-darwin-x64@0.51.3':
+    resolution: {integrity: sha512-qp9xFUX3g95L/9jHoxP0m7KTFRoHxo0SSLwSyIEqh8/2rxox+iJDLl+iVV4exIpfmlk7G2QtBSFsGx7CQe2fsg==}
+    engines: {node: '>= 20.0.0'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@ast-grep/cli-linux-arm64-gnu@0.51.3':
+    resolution: {integrity: sha512-a/nx/DvXUERIV+vEcdfeHLUsYG+/oTWZFdLBsmMhz5IQKwTTvMWNQDj1uDx6ReqJNYpcZhjn8TBq9erTHiiRSw==}
+    engines: {node: '>= 20.0.0'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@ast-grep/cli-linux-arm64-musl@0.51.3':
+    resolution: {integrity: sha512-3jwGiJLFhRf0RnhwJAAfo0o7LgpJJK8byJEXvP7SdeGAlAX5pxovTvIJ9ND9WTV20HLhU8qEAUJtvCzBnRG3RA==}
+    engines: {node: '>= 20.0.0'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@ast-grep/cli-linux-x64-gnu@0.51.3':
+    resolution: {integrity: sha512-7mKLyI664ntH+/U/a0KVopsSKxUFwz6YT80FW0kMt5reMoBqeEJdkO3p1Ub1p25Usv2EWHz6FbCxipHO2MZerg==}
+    engines: {node: '>= 20.0.0'}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@ast-grep/cli-linux-x64-musl@0.51.3':
+    resolution: {integrity: sha512-KRr8Kxo7eaDPA1mJUE+kyjYAMOyVrTpKbP/3qUgZmNopNAkkyPaHxjihDsnrMvQzyUr7Q3Z7tLUr09Po+3xS4g==}
+    engines: {node: '>= 20.0.0'}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@ast-grep/cli-win32-arm64-msvc@0.51.3':
+    resolution: {integrity: sha512-l5Zm3AX6A23NqmEN90+9YqDvOqR/Nye0BYlGWAPAyBHhsBXKQlkpPP9gfWXUe23NVPfeoBTcqDcrzQEnArJijw==}
+    engines: {node: '>= 20.0.0'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@ast-grep/cli-win32-ia32-msvc@0.51.3':
+    resolution: {integrity: sha512-zXH0oxdLl0/VvBAX9Cvp2VUlzjSgj7fPeSbcEbAtRCGOe5m//+yC05mcde68wcJOiaZE3oGis2PYrMCSc6xIrw==}
+    engines: {node: '>= 20.0.0'}
+    cpu: [ia32]
+    os: [win32]
+
+  '@ast-grep/cli-win32-x64-msvc@0.51.3':
+    resolution: {integrity: sha512-gd1o0An798IaJvsVbv5nSe2mxFsNqetW8owxijOw5KSb70mbLgyZnCV0fdm5cYmVG9QBabn3iyXzcNv8C7B+tw==}
+    engines: {node: '>= 20.0.0'}
+    cpu: [x64]
+    os: [win32]
+
+  '@ast-grep/cli@0.51.3':
+    resolution: {integrity: sha512-fjdWDDZcTCiUYt0yrHoZNmCRAP8QHKp++xKSLr0PrMqvk/m3v+543IWVvnJ5IcY9Lp0Z7bKSjP2/APZeypT/1g==}
+    engines: {node: '>= 20.0.0'}
+    hasBin: true
 
   '@cacheable/memory@2.2.0':
     resolution: {integrity: sha512-CTLKqLItRCEixEAewD3/j9DB3/o96gpTPD4eJ1v+DGOlxZRZncRQkGYqqnAGCscYd6RNeXfGeiuCphsPtqyIfQ==}
@@ -269,46 +313,6 @@ packages:
     resolution: {integrity: sha512-IkO+/KEUvwbVpiURZg+P7zF74z5Jxe0UgJxVni+RtoHQ6IZieXaO02kmadomap/q+l6bc/jdPGGqTjhuZnuz1Q==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
-  '@fallow-cli/darwin-arm64@2.103.0':
-    resolution: {integrity: sha512-uTZCHutYXzMYM0FHWgGbcuDNR/5ovlFy9oGzj+siZeedlhx9fDchNqqZnOhrQPrAHeY9qIC9fkg5EoF39bLpwA==}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@fallow-cli/darwin-x64@2.103.0':
-    resolution: {integrity: sha512-JqPyxaetUcWd0YalmeZB6XK18P9nrpuk8s9hFvjoKErqpbHec4rwUH/WGT5UAJKGxkb/u759DZ6QN5OCSZuc5w==}
-    cpu: [x64]
-    os: [darwin]
-
-  '@fallow-cli/linux-arm64-gnu@2.103.0':
-    resolution: {integrity: sha512-SAECbDxorRi1JXmsoZDZPuAJKo8Ocm19AmPxlabWkBNv8TrwatcUXP2xLMYfX5JTPf1Lw8DIvZPI3KtGjqpHKQ==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@fallow-cli/linux-arm64-musl@2.103.0':
-    resolution: {integrity: sha512-JNOliawVHRucrruFJ3DoxsjWrA+/epJW2JSIHJ+kWcXNon6Zyzav1rrHu/cDSSXHRs7p7+sdLQhaAOmw9Q9u1w==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@fallow-cli/linux-x64-gnu@2.103.0':
-    resolution: {integrity: sha512-cB0+iSVqkqxtZ7jkpFPfLGyUeELurcGI4Dj+FnE6/oeRmn2qdKOh8TFAr7qFhrQv81vkKXk66EhF6FiZNUYNSA==}
-    cpu: [x64]
-    os: [linux]
-
-  '@fallow-cli/linux-x64-musl@2.103.0':
-    resolution: {integrity: sha512-CKtGL1hsxO1AoEDnVAOSK4GRcgjOSfMB6KFHgBNtL/jLvlmDJJKKq+zSlKuN5txYRvOzgrhyGhCAzykRr6DBQg==}
-    cpu: [x64]
-    os: [linux]
-
-  '@fallow-cli/win32-arm64-msvc@2.103.0':
-    resolution: {integrity: sha512-oyIxbQwDvwP+nA5EJUAJusg04X8kyooETLEpQTmRsf9X3tJe/U2SOXKfapvRJjRDxmyxfRPTYVQs2rwuFtRCZg==}
-    cpu: [arm64]
-    os: [win32]
-
-  '@fallow-cli/win32-x64-msvc@2.103.0':
-    resolution: {integrity: sha512-wOd8DujxESunwZWu7fBhd1IHoHvNnv1mHLtR68v4sJCtR9CS9ThuyHHmwlpTgUbtCJ3wWZtjT8DCyu1MApTeQA==}
-    cpu: [x64]
-    os: [win32]
-
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
     engines: {node: '>=18.18.0'}
@@ -337,106 +341,6 @@ packages:
 
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
-
-  '@koromix/koffi-android-arm64@3.3.8':
-    resolution: {integrity: sha512-Y0lt2JexRGXlg1PxFuegfi5p6bIcLMj7Mig0WapZRKEM3Yv2L9J3Ej4XHPYMsB0TRNttBRHiliaJOH6EedEIXg==}
-    cpu: [arm64]
-    os: [android]
-
-  '@koromix/koffi-android-x64@3.3.8':
-    resolution: {integrity: sha512-ZOwUZJoQ7Xd0rRF85Qc5XyIBjZPKGNLNgoTFakWdxn55AoZ6zdGEYvOXQMIN8JLjQ6qYUiQMtlFlusddZr+pjA==}
-    cpu: [x64]
-    os: [android]
-
-  '@koromix/koffi-darwin-arm64@3.3.8':
-    resolution: {integrity: sha512-7tzlnYSePCQW66iEIi+wgN9HgTiF431KL9wIDhH9b+32KOYZXBdA+JyDgRVi2E5AIyJ1hdkQFNg7YCAOft2mKw==}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@koromix/koffi-darwin-x64@3.3.8':
-    resolution: {integrity: sha512-Pw1EsCT9Yov4Szo4joLhABbQfqNgYhwfkhWZiIbEZ2b3sGyv9Yj2N0p00jOpdTfQ+u9QFFi8XhNivJbBTqMTPA==}
-    cpu: [x64]
-    os: [darwin]
-
-  '@koromix/koffi-freebsd-arm64@3.3.8':
-    resolution: {integrity: sha512-bpkvHfxUn5EqaHQO9k42lqO8+5t9aF8McgJyOsXx+vd/xicA0Zc0vP2kz0MjQu760ZdsR3WI4VFiNh2xHRP6Lw==}
-    cpu: [arm64]
-    os: [freebsd]
-
-  '@koromix/koffi-freebsd-ia32@3.3.8':
-    resolution: {integrity: sha512-h2WI3Ofb+TioTqWDTMXPgtZ2LAghY2CPwZwMM3mZeGAzKygo9RxZ4PRGq8bvrdvinR4VN9ZK+H48m9GV3/u3mQ==}
-    cpu: [ia32]
-    os: [freebsd]
-
-  '@koromix/koffi-freebsd-x64@3.3.8':
-    resolution: {integrity: sha512-Z1VAr2CfWaHYfqJ1UlbZBH2IcPqZHilBSCgSqDmVhmyN/tSz5kSjaRfxcBGloJted3CCvsNFg8lOJiKkPiAUNQ==}
-    cpu: [x64]
-    os: [freebsd]
-
-  '@koromix/koffi-linux-arm64@3.3.8':
-    resolution: {integrity: sha512-7yknlwsy7X76+Qy7leuI+RTQfYHX1W8Uv+CFpyiMsdLnpaSCpNJDIpCr6/qnQzpLx93mRncB+VBBD2PB/IMX8g==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@koromix/koffi-linux-arm@3.3.8':
-    resolution: {integrity: sha512-9c9IfIz5sFpzbuwV2HomSBWOakpbd9tJ3FChmE556KdPzw9iXrJoMT5JyzPnUe10Soag2NK6SMKrDafOsR6J2A==}
-    cpu: [arm]
-    os: [linux]
-
-  '@koromix/koffi-linux-ia32@3.3.8':
-    resolution: {integrity: sha512-/AqDOcvQzeSDnwDsdqfJP2LjBgCX6CJZwSuYJc+YZCFFtUvsIDq9sRfSvyDy6xTC3HTkJKaT1SrrlE6Ji1aZCA==}
-    cpu: [ia32]
-    os: [linux]
-
-  '@koromix/koffi-linux-loong64@3.3.8':
-    resolution: {integrity: sha512-XgqxynMlKdcPZ5Hu0EyhFqfvEMcqm1RzLj8vbhRTtwV/GhrAMoToExzcF5uHXqiVL/EsWE1V/BmdrCfjlUsqtA==}
-    cpu: [loong64]
-    os: [linux]
-
-  '@koromix/koffi-linux-ppc64@3.3.8':
-    resolution: {integrity: sha512-nzoG1pIu00cdwbMmQ+U4Tr1Xaej1L/XP39wG0nQMviDf/7tlZeM8i/yD1ggNHeSYao/CHcaJr0eW5IjmkfO10Q==}
-    cpu: [ppc64]
-    os: [linux]
-
-  '@koromix/koffi-linux-riscv64@3.3.8':
-    resolution: {integrity: sha512-i6CtjaydMXmhvUPz5gCCodgCBCQOA27Cs0mCTcodHzaJCmICqlmGr0y7ManHIeqTxzrDNIJERa0BFNBpoPpe4A==}
-    cpu: [riscv64]
-    os: [linux]
-
-  '@koromix/koffi-linux-x64@3.3.8':
-    resolution: {integrity: sha512-0KyTCxjxzjdwCxTA8HdEFCLeJLZPQdOqpJQVvf2KJA8izmnDlM/g2NZd6jNJ4lwvuU8+R6fN7zW0OrwSM6pHzA==}
-    cpu: [x64]
-    os: [linux]
-
-  '@koromix/koffi-openbsd-arm64@3.3.8':
-    resolution: {integrity: sha512-HY1pfpsHrHL248y3TRg0FAa8MlSLuVMABkkieiKINqNvIWWvuMekZO/zQM+BtmgFQHXO+t/Hd0W55fzH/U2EYA==}
-    cpu: [arm64]
-    os: [openbsd]
-
-  '@koromix/koffi-openbsd-ia32@3.3.8':
-    resolution: {integrity: sha512-745gBEJnFhO9N7mnRVRkd2NQnQGbBUKkEUsJcm2Di5KBkkTyfjf2BQSvzegJE+ab6gLnQ57ZEA0UwBBdS0MlrA==}
-    cpu: [ia32]
-    os: [openbsd]
-
-  '@koromix/koffi-openbsd-x64@3.3.8':
-    resolution: {integrity: sha512-bwcuk5PquAQGgR1DYAVrZwInSEeKuq0RXFylejAs5kQCJCBoyUOipkAJj4q4HYdOtCCxwqdrMm/+XwXrwtf3ZQ==}
-    cpu: [x64]
-    os: [openbsd]
-
-  '@koromix/koffi-win32-arm64@3.3.8':
-    resolution: {integrity: sha512-f43sCr9lxFIvkOEE0Br+Qr5+KH2XqRm/EAQgAflYprIsjCz4eBTPVwEjbuymyN/6iDEKyO7EDz/7xQgNiyvIyA==}
-    cpu: [arm64]
-    os: [win32]
-
-  '@koromix/koffi-win32-ia32@3.3.8':
-    resolution: {integrity: sha512-aBozU1HP1mWzanVAoo2fkJBLJsEVVs2b3/FbtqbotrgDFsBt8r71LNX+mKX7d4YASXMIAsUPG3iXBpNtk7+Y8Q==}
-    cpu: [ia32]
-    os: [win32]
-
-  '@koromix/koffi-win32-x64@3.3.8':
-    resolution: {integrity: sha512-Ef9XpIn/AfnZWMI1lvA6IOjCsTVRlako+BXosp4cRaLZZXkgjwiBVqYXXhqZix1G8e+27UAv97XBTmDEyfS7jA==}
-    cpu: [x64]
-    os: [win32]
 
   '@oxfmt/binding-android-arm-eabi@0.78.0':
     resolution: {integrity: sha512-1x9NPGQG5WMOOT8spRP4hPbeqwB/P9ayxFo4EUDSle6mLmtYRqE6suXgHr93/S2nnszy77LlIa8klkKdWtHbMw==}
@@ -701,9 +605,6 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
-  '@types/node@26.6.6':
-    resolution: {integrity: sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog==}
-
   '@typescript-eslint/project-service@8.72.2':
     resolution: {integrity: sha512-6y5dLTZdHhI8Eh3yIQ/bfQhRKwn5e+TpJj64o18Cngc0iW/BCrVvrr6zGYqXPnYH31u6YXAYiFh0+qxX5mybJw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -741,53 +642,6 @@ packages:
     resolution: {integrity: sha512-NAGrjn0Pitjqzq/GkgMC4kBYm233PQ8GffyQ9+kTA3AlNQYEzOf25EIM02BAHZv5FRJSpHpJk+OGUxVkOB93GQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@typescript/native-preview-darwin-arm64@7.0.0-dev.20260707.2':
-    resolution: {integrity: sha512-wny2pgKjGbiZtnOIHVa3tXC1UfDqxNEFzyPGmiqybedG8hipG2Nfp0l5UxbaKCjkLacUpH/W5bP2hBOMVhCOzg==}
-    engines: {node: '>=16.20.0'}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@typescript/native-preview-darwin-x64@7.0.0-dev.20260707.2':
-    resolution: {integrity: sha512-Afc7M5zOwo+GpfcYwz5Z8HMB2tPVsui7nNIqEuuFB73MPdVqNn/Wmpe4tP4MRri0AtJnJknoHBaTJ/VDAp/Jhw==}
-    engines: {node: '>=16.20.0'}
-    cpu: [x64]
-    os: [darwin]
-
-  '@typescript/native-preview-linux-arm64@7.0.0-dev.20260707.2':
-    resolution: {integrity: sha512-iITBa2WjjTI5N9t5l7Z4KoOSI+2zBlhbvFzsD/f8qX8QoKjz/Y4DPyBDgezYi8nkqjjksbgSOJ3/ykzhwrB9cg==}
-    engines: {node: '>=16.20.0'}
-    cpu: [arm64]
-    os: [linux]
-
-  '@typescript/native-preview-linux-arm@7.0.0-dev.20260707.2':
-    resolution: {integrity: sha512-hJm/UOqZTr9FHmR7uNm8VGX4oKtfWk0Jem0zPeJFNC8ckGUfSBueyiEYMZB+XmRc1aG4x1E46y3CplP4CLHvGQ==}
-    engines: {node: '>=16.20.0'}
-    cpu: [arm]
-    os: [linux]
-
-  '@typescript/native-preview-linux-x64@7.0.0-dev.20260707.2':
-    resolution: {integrity: sha512-du0dzi6y97Po5vDNdPJTyyijHCpaS22JLRnKZEJXBDaO9gCIymOv/5QQokFRuOlQm0bWl3i9PF4OVdGP6uAOQA==}
-    engines: {node: '>=16.20.0'}
-    cpu: [x64]
-    os: [linux]
-
-  '@typescript/native-preview-win32-arm64@7.0.0-dev.20260707.2':
-    resolution: {integrity: sha512-SsAwfhyHJ1akgBc+99z4+hwdbHsdWaKB8EwCNIMA6JfSLMeUjffrYvxu+vfMyxVtOVOz7RrRXRoiDiu4a2sCtg==}
-    engines: {node: '>=16.20.0'}
-    cpu: [arm64]
-    os: [win32]
-
-  '@typescript/native-preview-win32-x64@7.0.0-dev.20260707.2':
-    resolution: {integrity: sha512-DL4u27stv0fo71sVhOzHSwE+YMZsbBijVI+kg5dLDLilSH79WFTJ8RSQ46vJrCMt+Gjlv/JOZP1PuLJDfioYeQ==}
-    engines: {node: '>=16.20.0'}
-    cpu: [x64]
-    os: [win32]
-
-  '@typescript/native-preview@7.0.0-dev.20260707.2':
-    resolution: {integrity: sha512-oUGp+Rep/hqMhPunyinsALUwSlzHINSxitifPiSaeqoKOKD2OlR9NE3TaPqwsl4NlGslsOSUXI1JotWQzpYCPg==}
-    engines: {node: '>=16.20.0'}
-    hasBin: true
-
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
     peerDependencies:
@@ -804,6 +658,10 @@ packages:
   are-docs-informative@0.1.1:
     resolution: {integrity: sha512-sqRsNQBwbKLRX0jV5Cu5uzmtflf892n4Vukz7T659ebL4pz3mpOqCMU7lxMoBTFwnp10E3YB5ZcyHM41W5bcDA==}
     engines: {node: '>=18'}
+
+  ast-grep-rules-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/ast-grep-rules:
+    resolution: {gitHosted: true, integrity: sha512-M3xfwFaU5EG7VZYVSeoP+lGWmzNcO9UWyWdLwlZbSVwmwubjzjDt8rq2RZFlyQRge6XLfS9mkHZjHd3OvpatHg==, path: /packages/ast-grep-rules, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5}
+    version: 0.11.0
 
   avi12-lint@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/avi12-lint:
     resolution: {gitHosted: true, integrity: sha512-M3xfwFaU5EG7VZYVSeoP+lGWmzNcO9UWyWdLwlZbSVwmwubjzjDt8rq2RZFlyQRge6XLfS9mkHZjHd3OvpatHg==, path: /packages/avi12-lint, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5}
@@ -936,17 +794,6 @@ packages:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
 
-  fallow-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/fallow-config:
-    resolution: {gitHosted: true, integrity: sha512-M3xfwFaU5EG7VZYVSeoP+lGWmzNcO9UWyWdLwlZbSVwmwubjzjDt8rq2RZFlyQRge6XLfS9mkHZjHd3OvpatHg==, path: /packages/fallow-config, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5}
-    version: 0.11.0
-    peerDependencies:
-      fallow: '>=2.103.0'
-
-  fallow@2.103.0:
-    resolution: {integrity: sha512-UWogn/6+R8yPqSjvCEQujFOqTwwhAbhNm5wC21LzNp2TiMGoIYLy39QzVpXLz6eimVWUAACcvwCQN7nbtTKzPA==}
-    engines: {node: '>=16'}
-    hasBin: true
-
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
 
@@ -1027,9 +874,6 @@ packages:
   keyv@5.6.0:
     resolution: {integrity: sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw==}
 
-  koffi@3.3.8:
-    resolution: {integrity: sha512-CTDlV3BDh8LFyCgv9vamD+5eu49HQ5wBetAJ9wxERAoAy6rfodahgo28tqhz010l2OGcZvrnBC6MOTyQUt4EIQ==}
-
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
@@ -1083,12 +927,6 @@ packages:
 
   oxlint-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxlint-config:
     resolution: {gitHosted: true, integrity: sha512-M3xfwFaU5EG7VZYVSeoP+lGWmzNcO9UWyWdLwlZbSVwmwubjzjDt8rq2RZFlyQRge6XLfS9mkHZjHd3OvpatHg==, path: /packages/oxlint-config, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5}
-    version: 0.11.0
-    peerDependencies:
-      oxlint: '>=1.90.0'
-
-  oxlint-plugin-naming@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxlint-plugin-naming:
-    resolution: {gitHosted: true, integrity: sha512-M3xfwFaU5EG7VZYVSeoP+lGWmzNcO9UWyWdLwlZbSVwmwubjzjDt8rq2RZFlyQRge6XLfS9mkHZjHd3OvpatHg==, path: /packages/oxlint-plugin-naming, tarball: https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5}
     version: 0.11.0
     peerDependencies:
       oxlint: '>=1.90.0'
@@ -1205,9 +1043,6 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  undici-types@8.9.0:
-    resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
-
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
@@ -1224,10 +1059,48 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zod@4.6.7:
-    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
-
 snapshots:
+
+  '@ast-grep/cli-darwin-arm64@0.51.3':
+    optional: true
+
+  '@ast-grep/cli-darwin-x64@0.51.3':
+    optional: true
+
+  '@ast-grep/cli-linux-arm64-gnu@0.51.3':
+    optional: true
+
+  '@ast-grep/cli-linux-arm64-musl@0.51.3':
+    optional: true
+
+  '@ast-grep/cli-linux-x64-gnu@0.51.3':
+    optional: true
+
+  '@ast-grep/cli-linux-x64-musl@0.51.3':
+    optional: true
+
+  '@ast-grep/cli-win32-arm64-msvc@0.51.3':
+    optional: true
+
+  '@ast-grep/cli-win32-ia32-msvc@0.51.3':
+    optional: true
+
+  '@ast-grep/cli-win32-x64-msvc@0.51.3':
+    optional: true
+
+  '@ast-grep/cli@0.51.3':
+    dependencies:
+      detect-libc: 2.1.2
+    optionalDependencies:
+      '@ast-grep/cli-darwin-arm64': 0.51.3
+      '@ast-grep/cli-darwin-x64': 0.51.3
+      '@ast-grep/cli-linux-arm64-gnu': 0.51.3
+      '@ast-grep/cli-linux-arm64-musl': 0.51.3
+      '@ast-grep/cli-linux-x64-gnu': 0.51.3
+      '@ast-grep/cli-linux-x64-musl': 0.51.3
+      '@ast-grep/cli-win32-arm64-msvc': 0.51.3
+      '@ast-grep/cli-win32-ia32-msvc': 0.51.3
+      '@ast-grep/cli-win32-x64-msvc': 0.51.3
 
   '@cacheable/memory@2.2.0':
     dependencies:
@@ -1298,30 +1171,6 @@ snapshots:
       '@eslint/core': 1.2.1
       levn: 0.4.1
 
-  '@fallow-cli/darwin-arm64@2.103.0':
-    optional: true
-
-  '@fallow-cli/darwin-x64@2.103.0':
-    optional: true
-
-  '@fallow-cli/linux-arm64-gnu@2.103.0':
-    optional: true
-
-  '@fallow-cli/linux-arm64-musl@2.103.0':
-    optional: true
-
-  '@fallow-cli/linux-x64-gnu@2.103.0':
-    optional: true
-
-  '@fallow-cli/linux-x64-musl@2.103.0':
-    optional: true
-
-  '@fallow-cli/win32-arm64-msvc@2.103.0':
-    optional: true
-
-  '@fallow-cli/win32-x64-msvc@2.103.0':
-    optional: true
-
   '@humanfs/core@0.19.2':
     dependencies:
       '@humanfs/types': 0.15.0
@@ -1345,66 +1194,6 @@ snapshots:
       keyv: 5.6.0
 
   '@keyv/serialize@1.1.1': {}
-
-  '@koromix/koffi-android-arm64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-android-x64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-darwin-arm64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-darwin-x64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-freebsd-arm64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-freebsd-ia32@3.3.8':
-    optional: true
-
-  '@koromix/koffi-freebsd-x64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-linux-arm64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-linux-arm@3.3.8':
-    optional: true
-
-  '@koromix/koffi-linux-ia32@3.3.8':
-    optional: true
-
-  '@koromix/koffi-linux-loong64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-linux-ppc64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-linux-riscv64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-linux-x64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-openbsd-arm64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-openbsd-ia32@3.3.8':
-    optional: true
-
-  '@koromix/koffi-openbsd-x64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-win32-arm64@3.3.8':
-    optional: true
-
-  '@koromix/koffi-win32-ia32@3.3.8':
-    optional: true
-
-  '@koromix/koffi-win32-x64@3.3.8':
-    optional: true
 
   '@oxfmt/binding-android-arm-eabi@0.78.0':
     optional: true
@@ -1538,10 +1327,6 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
-  '@types/node@26.6.6':
-    dependencies:
-      undici-types: 8.9.0
-
   '@typescript-eslint/project-service@8.72.2(typescript@6.0.3)':
     dependencies:
       '@typescript-eslint/tsconfig-utils': 8.72.2(typescript@6.0.3)
@@ -1593,37 +1378,6 @@ snapshots:
       '@typescript-eslint/types': 8.72.2
       eslint-visitor-keys: 5.0.1
 
-  '@typescript/native-preview-darwin-arm64@7.0.0-dev.20260707.2':
-    optional: true
-
-  '@typescript/native-preview-darwin-x64@7.0.0-dev.20260707.2':
-    optional: true
-
-  '@typescript/native-preview-linux-arm64@7.0.0-dev.20260707.2':
-    optional: true
-
-  '@typescript/native-preview-linux-arm@7.0.0-dev.20260707.2':
-    optional: true
-
-  '@typescript/native-preview-linux-x64@7.0.0-dev.20260707.2':
-    optional: true
-
-  '@typescript/native-preview-win32-arm64@7.0.0-dev.20260707.2':
-    optional: true
-
-  '@typescript/native-preview-win32-x64@7.0.0-dev.20260707.2':
-    optional: true
-
-  '@typescript/native-preview@7.0.0-dev.20260707.2':
-    optionalDependencies:
-      '@typescript/native-preview-darwin-arm64': 7.0.0-dev.20260707.2
-      '@typescript/native-preview-darwin-x64': 7.0.0-dev.20260707.2
-      '@typescript/native-preview-linux-arm': 7.0.0-dev.20260707.2
-      '@typescript/native-preview-linux-arm64': 7.0.0-dev.20260707.2
-      '@typescript/native-preview-linux-x64': 7.0.0-dev.20260707.2
-      '@typescript/native-preview-win32-arm64': 7.0.0-dev.20260707.2
-      '@typescript/native-preview-win32-x64': 7.0.0-dev.20260707.2
-
   acorn-jsx@5.3.2(acorn@8.19.0):
     dependencies:
       acorn: 8.19.0
@@ -1638,6 +1392,8 @@ snapshots:
       uri-js: 4.4.1
 
   are-docs-informative@0.1.1: {}
+
+  ast-grep-rules-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/ast-grep-rules: {}
 
   avi12-lint@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/avi12-lint: {}
 
@@ -1788,23 +1544,6 @@ snapshots:
 
   esutils@2.0.3: {}
 
-  fallow-config-avi12@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/fallow-config(fallow@2.103.0):
-    dependencies:
-      fallow: 2.103.0
-
-  fallow@2.103.0:
-    dependencies:
-      detect-libc: 2.1.2
-    optionalDependencies:
-      '@fallow-cli/darwin-arm64': 2.103.0
-      '@fallow-cli/darwin-x64': 2.103.0
-      '@fallow-cli/linux-arm64-gnu': 2.103.0
-      '@fallow-cli/linux-arm64-musl': 2.103.0
-      '@fallow-cli/linux-x64-gnu': 2.103.0
-      '@fallow-cli/linux-x64-musl': 2.103.0
-      '@fallow-cli/win32-arm64-msvc': 2.103.0
-      '@fallow-cli/win32-x64-msvc': 2.103.0
-
   fast-deep-equal@3.1.3: {}
 
   fast-json-stable-stringify@2.1.0: {}
@@ -1869,29 +1608,6 @@ snapshots:
   keyv@5.6.0:
     dependencies:
       '@keyv/serialize': 1.1.1
-
-  koffi@3.3.8:
-    optionalDependencies:
-      '@koromix/koffi-android-arm64': 3.3.8
-      '@koromix/koffi-android-x64': 3.3.8
-      '@koromix/koffi-darwin-arm64': 3.3.8
-      '@koromix/koffi-darwin-x64': 3.3.8
-      '@koromix/koffi-freebsd-arm64': 3.3.8
-      '@koromix/koffi-freebsd-ia32': 3.3.8
-      '@koromix/koffi-freebsd-x64': 3.3.8
-      '@koromix/koffi-linux-arm': 3.3.8
-      '@koromix/koffi-linux-arm64': 3.3.8
-      '@koromix/koffi-linux-ia32': 3.3.8
-      '@koromix/koffi-linux-loong64': 3.3.8
-      '@koromix/koffi-linux-ppc64': 3.3.8
-      '@koromix/koffi-linux-riscv64': 3.3.8
-      '@koromix/koffi-linux-x64': 3.3.8
-      '@koromix/koffi-openbsd-arm64': 3.3.8
-      '@koromix/koffi-openbsd-ia32': 3.3.8
-      '@koromix/koffi-openbsd-x64': 3.3.8
-      '@koromix/koffi-win32-arm64': 3.3.8
-      '@koromix/koffi-win32-ia32': 3.3.8
-      '@koromix/koffi-win32-x64': 3.3.8
 
   levn@0.4.1:
     dependencies:
@@ -1963,10 +1679,6 @@ snapshots:
       - eslint
       - supports-color
       - typescript
-
-  oxlint-plugin-naming@https://codeload.github.com/avi12/lint-config/tar.gz/3b2bed262448df9fcfacba0253a1425e389883b5#path:/packages/oxlint-plugin-naming(oxlint@1.90.0):
-    dependencies:
-      oxlint: 1.90.0
 
   oxlint@1.90.0:
     optionalDependencies:
@@ -2064,8 +1776,6 @@ snapshots:
 
   typescript@6.0.3: {}
 
-  undici-types@8.9.0: {}
-
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
@@ -2077,5 +1787,3 @@ snapshots:
   word-wrap@1.2.5: {}
 
   yocto-queue@0.1.0: {}
-
-  zod@4.6.7: {}
