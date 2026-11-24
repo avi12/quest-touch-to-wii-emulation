@@ -19,7 +19,7 @@ The headset only _tracks_ the controllers. SteamVR hands their poses to a small 
 
 **Just the bridge:** `touch_dsu.exe` from the same release. Put it in a folder of its own and double-click it. It starts both bridges (right controller = Wii Remote 1 on UDP 26760, left = Wii Remote 2 on 26761). Close its window to stop them. You still need the Dolphin config from `config/` (see [Dolphin setup](#dolphin-setup)).
 
-Both update the bridge themselves: on every start it checks the latest GitHub release and, when there is a newer one, downloads it, swaps it in and restarts. Set `BRIDGE_NO_UPDATE=1` to skip that. Only release downloads update; builds from source never do.
+The app updates itself too: when a newer release is out it shows **Update now**, then downloads it, swaps its folder and restarts. The bridge updates itself: on every start it checks the latest GitHub release and, when there is a newer one, downloads it, swaps it in and restarts. Set `BRIDGE_NO_UPDATE=1` to skip that. Only release downloads update; builds from source never do.
 
 ## Requirements
 
