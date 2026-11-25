@@ -12,7 +12,8 @@
   "dependencies": {
     "svelte": "5.57.3",
     "vite": "^8.3.4",
-    "winui-svelte": "0.0.17"
+    "winui-svelte": "0.0.17",
+    "zod": "4.6.7"
   },
   "engines": {
     "node": ">=26"

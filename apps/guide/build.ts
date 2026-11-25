@@ -3,6 +3,7 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import path from "node:path";
 
 import { buildApp } from "winui-svelte/vite";
+import { z } from "zod";
 
 // Packages the guide for a release, into <repo>/target/guide:
 //   Touch Dolphin.exe   Node's single-executable app, switched to the GUI subsystem (no console)
@@ -59,11 +60,14 @@ bytes.writeUInt16LE(GUI_SUBSYSTEM, peOffset + OPTIONAL_HEADER_OFFSET + SUBSYSTEM
 writeFileSync(exe, bytes);
 
 // main.js and window.js are ES modules; say so, so Node does not parse them twice.
-const { version } = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")) as { version: string };
+const { version } = z
+  .object({ version: z.string() })
+  .parse(JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")));
 // The version is what the app's self-update compares with the newest release.
 writeFileSync(path.join(output, "package.json"), JSON.stringify({ type: "module", version }));
 cpSync(path.join(repo, "target", "release", "touch_dsu.exe"), path.join(output, "touch_dsu.exe"));
 mkdirSync(path.join(output, "config"), { recursive: true });
 cpSync(path.join(repo, "config"), path.join(output, "config"), { recursive: true });
-cpSync(path.join(root, "assets", "app.ico"), path.join(output, "app.ico"));
+// The icon and the update installer sit beside the exe.
+cpSync(path.join(root, "assets"), output, { recursive: true });
 process.stdout.write(`guide packaged in ${output}\n`);

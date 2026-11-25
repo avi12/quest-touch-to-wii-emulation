@@ -9,8 +9,7 @@ const STEAMVR_URI = "steam://rungameid/250820";
 
 export const PROCESS = {
   steamVr: "vrserver.exe",
-  dolphin: "Dolphin.exe",
-  bridge: "touch_dsu.exe"
+  dolphin: "Dolphin.exe"
 } as const;
 
 /** Whether a process with this image name is running. */
@@ -24,7 +23,7 @@ export async function isRunning(imageName: string) {
 }
 
 /** Opens a URI (steam://, https://) the way Explorer would. */
-export function openUri(uri: string) {
+function openUri(uri: string) {
   spawn("cmd", ["/c", "start", "", uri], { windowsHide: true, detached: true, stdio: "ignore" }).unref();
 }
 

@@ -1,28 +1,27 @@
 import { spawn } from "node:child_process";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+
+import { z } from "zod";
+
+import { readJson } from "../system/json.ts";
 
 // The Dolphin and game paths the person picked, kept between runs.
 
 const SETTINGS_FILE = join(process.env["APPDATA"] ?? "", "touch_dsu", "guide.json");
 const WII_MENU_TITLE = "0000000100000002";
 
-export interface Paths {
-  dolphin: string;
-  disc: string;
-}
+const PathsSchema = z.object({
+  dolphin: z.string().catch(""),
+  disc: z.string().catch("")
+});
 
-export async function loadPaths(): Promise<Paths> {
-  try {
-    const saved: unknown = JSON.parse(await readFile(SETTINGS_FILE, "utf8"));
-    const record = typeof saved === "object" && saved !== null ? (saved as Record<string, unknown>) : {};
-    return {
-      dolphin: typeof record["dolphin"] === "string" ? record["dolphin"] : "",
-      disc: typeof record["disc"] === "string" ? record["disc"] : ""
-    };
-  } catch {
-    return { dolphin: "", disc: "" };
-  }
+export type Paths = z.infer<typeof PathsSchema>;
+
+export const NO_PATHS: Paths = { dolphin: "", disc: "" };
+
+export async function loadPaths() {
+  return (await readJson(SETTINGS_FILE, PathsSchema)) ?? NO_PATHS;
 }
 
 export async function savePaths(paths: Paths) {

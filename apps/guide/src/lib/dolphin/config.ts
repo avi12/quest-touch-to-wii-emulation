@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { copyFile, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import { configFolder } from "./home.ts";
+import { configFolder } from "../system/home.ts";
 
 // Merges the bridge's Dolphin config into Dolphin's own. Dolphin rewrites its config on exit, so
 // this runs only while Dolphin is closed; every file it changes is backed up first.
