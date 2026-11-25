@@ -1,0 +1,136 @@
+{
+  "width": 520,
+  "labelWidth": 108,
+  "hands": {
+    "right": {
+      "height": 480,
+      "labels": [
+        {
+          "text": "Click: recenter",
+          "y": 40,
+          "color": "#038387"
+        }
+      ],
+      "badges": [
+        {
+          "number": 1,
+          "color": "#0067c0",
+          "x": 172.0,
+          "y": 74.0
+        },
+        {
+          "number": 1,
+          "color": "#0067c0",
+          "x": 460.1,
+          "y": 306.9
+        },
+        {
+          "number": 2,
+          "color": "#c239b3",
+          "x": 186.9,
+          "y": 116.0
+        },
+        {
+          "number": 2,
+          "color": "#c239b3",
+          "x": 458.1,
+          "y": 171.0
+        },
+        {
+          "number": 3,
+          "color": "#0f7b0f",
+          "x": 234.5,
+          "y": 64.0
+        },
+        {
+          "number": 3,
+          "color": "#0f7b0f",
+          "x": 450.1,
+          "y": 122.5
+        },
+        {
+          "number": 4,
+          "color": "#ca5010",
+          "x": 287.9,
+          "y": 421.5
+        },
+        {
+          "number": 4,
+          "color": "#ca5010",
+          "x": 478.1,
+          "y": 208.4
+        },
+        {
+          "number": 5,
+          "color": "#8764b8",
+          "x": 166.9,
+          "y": 413.0
+        },
+        {
+          "number": 5,
+          "color": "#8764b8",
+          "x": 313.9,
+          "y": 155.1
+        }
+      ]
+    },
+    "left": {
+      "height": 480,
+      "labels": [
+        {
+          "text": "Nunchuk stick",
+          "y": 40,
+          "color": "#ca5010"
+        },
+        {
+          "text": "Nunchuk Z",
+          "y": 398,
+          "color": "#8764b8"
+        },
+        {
+          "text": "Nunchuk C",
+          "y": 456,
+          "color": "#038387"
+        }
+      ],
+      "badges": [
+        {
+          "number": 1,
+          "color": "#0067c0",
+          "x": 240.0,
+          "y": 74.0
+        },
+        {
+          "number": 1,
+          "color": "#0067c0",
+          "x": 460.1,
+          "y": 334.7
+        },
+        {
+          "number": 2,
+          "color": "#c239b3",
+          "x": 225.1,
+          "y": 116.0
+        },
+        {
+          "number": 2,
+          "color": "#c239b3",
+          "x": 456.6,
+          "y": 208.4
+        },
+        {
+          "number": 3,
+          "color": "#0f7b0f",
+          "x": 167.9,
+          "y": 125.6
+        },
+        {
+          "number": 3,
+          "color": "#0f7b0f",
+          "x": 500.2,
+          "y": 208.4
+        }
+      ]
+    }
+  }
+}
