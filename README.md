@@ -17,6 +17,10 @@ The headset only _tracks_ the controllers. SteamVR hands their poses to a small 
 
 **The app (recommended).** Download `touch-dolphin.zip` from the [latest release](https://github.com/avi12/quest-touch-to-wii-emulation/releases/latest), unzip it anywhere and run **Touch Dolphin.exe**. It walks you through every step and checks each one: connecting the headset and starting SteamVR, setting up Dolphin (backing up your config first), and opening the Wii Menu with your game already in the drive. The bridges start on their own once SteamVR is up. Closing the window keeps them running in the system tray (the ring icon); **Quit** stops everything. It is a native Windows app built with [winui-svelte](https://www.npmjs.com/package/winui-svelte).
 
+![The Touch Dolphin app: numbered steps to connect the headset, set up Dolphin, start the bridges and play](docs/images/app.png)
+
+Choose your game with **Choose a game** or drag the file onto the Play step. The Controls step shows each Touch controller beside a Wii Remote, with the same numbered badge on a Touch button and the Wii button it becomes. Starting and stopping SteamVR, Dolphin and the bridges is animated, and every animation follows Windows' reduced-motion setting (Settings → Accessibility → Visual effects → Animation effects).
+
 **Just the bridge:** `touch_dsu.exe` from the same release. Put it in a folder of its own and double-click it. It starts both bridges (right controller = Wii Remote 1 on UDP 26760, left = Wii Remote 2 on 26761). Close its window to stop them. You still need the Dolphin config from `config/` (see [Dolphin setup](#dolphin-setup)).
 
 The app updates itself too: when a newer release is out it shows **Update now**, then downloads it, swaps its folder and restarts. The bridge updates itself: on every start it checks the latest GitHub release and, when there is a newer one, downloads it, swaps it in and restarts. Set `BRIDGE_NO_UPDATE=1` to skip that. Only release downloads update; builds from source never do.
@@ -113,7 +117,8 @@ crates/win32-sys    key state, beep, timer resolution, HTTPS through Windows' Wi
 crates/geometry     Vec3 / Mat3, shared by every crate
 crates/numeric      the one checked float-to-integer conversion, JavaScript-style number formatting
 crates/tools        diagnostics: dsu_probe, list_devices, controller_buttons, controller_tip_pose, calibrate_pointing_axis, telemetry_tail
-apps/guide          the setup guide (winui-svelte): `pnpm --dir apps/guide dev` runs it, `build` packages it
+apps/guide          the app (winui-svelte): `pnpm --dir apps/guide dev` runs it with hot reload, `build` packages it;
+                    tools/draw_controllers.py traces the controller diagrams from product photos into SVG
 scripts/            play.ps1 (everything in one step), start.ps1 / stop.ps1 (bridges; PID-based, never kills by name)
 config/             Dolphin config for Wii Remote 1 and 2
 tools/              keep_headset_awake.ps1
