@@ -2,7 +2,9 @@
 controller beside a Wii Remote, the same numbered badge on a Touch button and the Wii button it
 becomes.
 
-Run: python -I apps/guide/tools/draw_controllers.py <touch-right.png> <wii-remote.png> apps/guide/assets/controllers
+Run: python -I apps/guide/tools/draw_controllers.py [<touch-right.png> <wii-remote.png> [<out>]]
+The photos default to tools/photos/ (gitignored: they are Meta's and Nintendo's, not ours to
+redistribute) and the output to assets/controllers.
 (needs Pillow). The photos, on plain or softly graded light backgrounds (coordinates below are in
 their pixels):
   touch-right  1920 x 1080: the right controller from the side (trigger and grip) and the front;
@@ -22,7 +24,14 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
 sys.path.insert(0, os.path.dirname(__file__))
 from trace import shade_layers, trace  # noqa: E402
 
-RIGHT_PHOTO, WII_PHOTO, OUT = sys.argv[1:4]
+HERE = os.path.dirname(os.path.abspath(__file__))
+DEFAULTS = [
+    os.path.join(HERE, "photos", "meta-quest-2-touch.png"),
+    os.path.join(HERE, "photos", "nintendo-wii-remote.png"),
+    os.path.join(HERE, "..", "assets", "controllers"),
+]
+ARGS = sys.argv[1:4]
+RIGHT_PHOTO, WII_PHOTO, OUT = ARGS + DEFAULTS[len(ARGS) :]
 VIEW_W = 520  # each SVG's width, in points
 LABEL_W = 108  # the text labels' column on the left; their lines end at its edge
 EDGE, HALO = "#9ea4ad", "#ffffff"

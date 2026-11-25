@@ -9,3 +9,4 @@ __pycache__/
 target/
 .verify/
 .play.json
+apps/guide/tools/photos/
